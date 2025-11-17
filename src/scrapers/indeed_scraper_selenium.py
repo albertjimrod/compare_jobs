@@ -107,8 +107,8 @@ class IndeedScraperSelenium(BaseScraper):
                 '''
             })
 
-            # Timeouts
-            driver.implicitly_wait(self.config.get('scraping.page_load_timeout', 30))
+            # Timeouts más cortos para evitar esperas largas
+            driver.implicitly_wait(2)  # Reducido de 30 a 2 segundos
             driver.set_page_load_timeout(self.config.get('scraping.page_load_timeout', 30))
 
             logger.info("✅ Selenium WebDriver configurado correctamente")
@@ -332,22 +332,48 @@ class IndeedScraperSelenium(BaseScraper):
             except NoSuchElementException:
                 pass
 
-            # Descripción (snippet)
+            # Descripción (snippet) - Probar múltiples selectores
             description = ""
-            try:
-                desc_elem = card.find_element(By.CLASS_NAME, "job-snippet")
-                description = ScrapingUtils.clean_text(desc_elem.text)
-            except NoSuchElementException:
-                # Intentar con selector alternativo
+
+            # Lista de selectores a probar (de más específico a más general)
+            description_selectors = [
+                (By.CLASS_NAME, "job-snippet"),
+                (By.CSS_SELECTOR, "div.job-snippet"),
+                (By.CSS_SELECTOR, "ul.job-snippet"),
+                (By.CSS_SELECTOR, "div[class*='snippet']"),
+                (By.CSS_SELECTOR, "td.resultContent div"),
+                (By.CSS_SELECTOR, ".jobCardShelfContainer div"),
+            ]
+
+            for selector_type, selector_value in description_selectors:
                 try:
-                    desc_elem = card.find_element(By.CSS_SELECTOR, "div.job-snippet, ul.job-snippet")
-                    description = ScrapingUtils.clean_text(desc_elem.text)
+                    desc_elem = card.find_element(selector_type, selector_value)
+                    desc_text = ScrapingUtils.clean_text(desc_elem.text)
+                    if desc_text and len(desc_text) > 20:  # Filtrar textos muy cortos
+                        description = desc_text
+                        logger.debug(f"   Descripción extraída con selector: {selector_value}")
+                        break
                 except NoSuchElementException:
+                    continue
+
+            # Si no se encontró descripción, intentar obtener todo el texto de la tarjeta
+            if not description:
+                try:
+                    card_text = ScrapingUtils.clean_text(card.text)
+                    # Remover título y empresa del texto completo
+                    card_text = card_text.replace(title, "").replace(company, "")
+                    if len(card_text) > 50:  # Asegurar que hay contenido útil
+                        description = card_text
+                        logger.debug(f"   Descripción extraída del texto completo de la tarjeta")
+                    else:
+                        logger.debug(f"   ⚠️ No se pudo extraer descripción (texto muy corto)")
+                except Exception as e:
+                    logger.debug(f"   ⚠️ Error extrayendo descripción: {str(e)}")
                     pass
 
             # Unir título + descripción para mejor extracción de tecnologías
-            full_text = f"{title} {description}"
-            description = full_text if full_text.strip() else ""
+            full_text = f"{title} {description}".strip()
+            description = full_text if full_text else title  # Al menos usar el título
 
             # Salario (si está disponible)
             salary_info = {'salary_min': None, 'salary_max': None, 'salary_currency': 'EUR'}
