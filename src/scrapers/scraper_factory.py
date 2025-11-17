@@ -17,6 +17,29 @@ except ImportError:
     SELENIUM_AVAILABLE = False
     logger.debug("Selenium scraper no disponible")
 
+# Importar nuevos scrapers (solo si Selenium está disponible)
+if SELENIUM_AVAILABLE:
+    try:
+        from .linkedin_scraper import LinkedInScraper
+        from .glassdoor_scraper import GlassdoorScraper
+        from .monster_scraper import MonsterScraper
+        from .upwork_scraper import UpworkScraper
+        from .freelancer_scraper import FreelancerScraper
+        from .workana_scraper import WorkanaScraper
+        from .malt_scraper import MaltScraper
+        from .fiverr_scraper import FiverrScraper
+        from .simplyhired_scraper import SimplyHiredScraper
+        from .ziprecruiter_scraper import ZipRecruiterScraper
+        from .careerbuilder_scraper import CareerBuilderScraper
+        from .randstad_scraper import RandstadScraper
+        from .italenters_scraper import iTalentersScraper
+        from .michaelpage_scraper import MichaelPageScraper
+        from .tecnoempleo_scraper import TecnoempleoScraper
+        from .hays_scraper import HaysScraper
+        from .infoempleo_scraper import InfoempleoScraper
+    except ImportError as e:
+        logger.debug(f"Algunos scrapers no pudieron importarse: {e}")
+
 from ..utils.config_loader import ConfigLoader
 
 
@@ -26,11 +49,40 @@ class ScraperFactory:
     # Mapeo de plataformas a clases de scrapers
     # Se usa Selenium por defecto si está disponible
     _SCRAPERS: Dict[str, Type[BaseScraper]] = {
+        # Indeed (con Selenium y fallback)
         'indeed': IndeedScraperSelenium if SELENIUM_AVAILABLE else IndeedScraper,
         'indeed-requests': IndeedScraper,  # Versión requests (menos confiable)
         'indeed-selenium': IndeedScraperSelenium if SELENIUM_AVAILABLE else None,
+
+        # InfoJobs (existente)
         'infojobs': InfojobsScraper,
-        # Más scrapers se pueden agregar aquí
+
+        # Plataformas principales (requieren Selenium)
+        'linkedin': LinkedInScraper if SELENIUM_AVAILABLE else None,
+        'glassdoor': GlassdoorScraper if SELENIUM_AVAILABLE else None,
+        'monster': MonsterScraper if SELENIUM_AVAILABLE else None,
+
+        # Plataformas freelance
+        'upwork': UpworkScraper if SELENIUM_AVAILABLE else None,
+        'freelancer': FreelancerScraper if SELENIUM_AVAILABLE else None,
+        'workana': WorkanaScraper if SELENIUM_AVAILABLE else None,
+        'malt': MaltScraper if SELENIUM_AVAILABLE else None,
+        'fiverr': FiverrScraper if SELENIUM_AVAILABLE else None,
+
+        # Agregadores y portales de empleo
+        'simplyhired': SimplyHiredScraper if SELENIUM_AVAILABLE else None,
+        'ziprecruiter': ZipRecruiterScraper if SELENIUM_AVAILABLE else None,
+        'careerbuilder': CareerBuilderScraper if SELENIUM_AVAILABLE else None,
+
+        # Empresas de recursos humanos
+        'randstad': RandstadScraper if SELENIUM_AVAILABLE else None,
+        'michaelpage': MichaelPageScraper if SELENIUM_AVAILABLE else None,
+        'hays': HaysScraper if SELENIUM_AVAILABLE else None,
+
+        # Portales españoles especializados
+        'italenters': iTalentersScraper if SELENIUM_AVAILABLE else None,
+        'tecnoempleo': TecnoempleoScraper if SELENIUM_AVAILABLE else None,
+        'infoempleo': InfoempleoScraper if SELENIUM_AVAILABLE else None,
     }
 
     @staticmethod
