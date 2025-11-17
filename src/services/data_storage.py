@@ -6,7 +6,7 @@ Soporta múltiples formatos: CSV, JSON, SQLite.
 import json
 import csv
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime
 import pandas as pd
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Text
