@@ -241,62 +241,38 @@ class IndeedScraperSelenium(BaseScraper):
                 # Navegar a la página
                 self.driver.get(url)
 
-                # Esperar a que carguen los resultados - probar múltiples selectores
-                wait_success = False
-                selectors_to_try = [
-                    (By.CLASS_NAME, "job_seen_beacon"),
-                    (By.CSS_SELECTOR, "div.job_seen_beacon"),
-                    (By.CSS_SELECTOR, "div[class*='jobCard']"),
-                    (By.CSS_SELECTOR, "div[data-jk]"),
-                    (By.CSS_SELECTOR, "td.resultContent"),
-                    (By.CSS_SELECTOR, "div[class*='result']"),
-                ]
+                # Esperar a que la página cargue completamente
+                time.sleep(4)
 
-                for selector_type, selector_value in selectors_to_try:
-                    try:
-                        WebDriverWait(self.driver, 5).until(
-                            EC.presence_of_element_located((selector_type, selector_value))
-                        )
-                        wait_success = True
-                        logger.debug(f"Encontrados resultados con selector: {selector_value}")
-                        break
-                    except TimeoutException:
-                        continue
-
-                if not wait_success:
-                    logger.warning("No se pudieron encontrar resultados con ningún selector")
-                    # No hacer break inmediatamente, intentar buscar de todos modos
-                    time.sleep(2)
-
-                # Scroll aleatorio para parecer más humano
+                # Scroll para cargar contenido dinámico
                 self._random_scroll()
+                time.sleep(2)
 
-                # Encontrar ofertas en la página - probar múltiples selectores
+                # Buscar ofertas con selectores específicos de Indeed
                 job_cards = []
-                card_selectors = [
-                    (By.CLASS_NAME, "job_seen_beacon"),
-                    (By.CSS_SELECTOR, "div.job_seen_beacon"),
-                    (By.CSS_SELECTOR, "div[class*='jobCard']"),
-                    (By.CSS_SELECTOR, "div[data-jk]"),
-                    (By.CSS_SELECTOR, "td.resultContent"),
-                    (By.CSS_SELECTOR, "div[class*='result']"),
-                    (By.CSS_SELECTOR, "li[class*='result']"),
+
+                # Los selectores más comunes y actuales de Indeed
+                selectors = [
+                    "div.job_seen_beacon",     # Selector principal de Indeed
+                    "div[data-jk]",             # Ofertas con ID
+                    "td.resultContent",         # Contenido de resultado
+                    "div.cardOutline",          # Tarjetas outline
+                    "div.slider_item",          # Items en slider
                 ]
 
-                for selector_type, selector_value in card_selectors:
+                for selector in selectors:
                     try:
-                        job_cards = self.driver.find_elements(selector_type, selector_value)
-                        if job_cards:
-                            logger.debug(f"Encontradas {len(job_cards)} ofertas con selector: {selector_value}")
+                        elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                        if elements:
+                            job_cards = elements
+                            logger.info(f"✓ Encontradas {len(job_cards)} ofertas con selector: {selector}")
                             break
                     except Exception:
                         continue
 
                 if not job_cards:
-                    logger.debug("No se encontraron más ofertas")
+                    logger.warning(f"No se encontraron ofertas en página {page + 1}")
                     break
-
-                logger.debug(f"Encontradas {len(job_cards)} ofertas en página {page + 1}")
 
                 for idx, card in enumerate(job_cards, 1):
                     try:

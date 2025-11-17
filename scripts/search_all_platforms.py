@@ -162,7 +162,8 @@ def main():
     logger.info("\n📈 Generando visualizaciones...")
     visualizer = DataVisualizer(config)
     try:
-        visualizer.create_all_visualizations(all_jobs, analysis)
+        # IMPORTANTE: El orden es (analysis, jobs) no (jobs, analysis)
+        visualizer.create_all_visualizations(analysis, all_jobs)
         logger.info(f"✅ Visualizaciones guardadas en: {storage.data_dir}/visualizations/")
     except Exception as e:
         logger.error(f"❌ Error generando visualizaciones: {e}")

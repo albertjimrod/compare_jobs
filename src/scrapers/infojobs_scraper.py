@@ -153,51 +153,38 @@ class InfojobsScraper(BaseScraper):
                 logger.debug(f"Navegando a: {search_url}")
                 self.driver.get(search_url)
 
-                # Esperar a que carguen los resultados - múltiples selectores
-                wait_success = False
-                selectors_to_try = [
-                    (By.CSS_SELECTOR, "li[class*='offer']"),
-                    (By.CSS_SELECTOR, "article"),
-                    (By.CSS_SELECTOR, "div[class*='offer']"),
-                    (By.CSS_SELECTOR, ".js-offer"),
-                    (By.CSS_SELECTOR, "[data-id]"),
-                ]
+                # Esperar a que la página cargue
+                time.sleep(5)
 
-                for selector_type, selector_value in selectors_to_try:
-                    try:
-                        WebDriverWait(self.driver, 5).until(
-                            EC.presence_of_element_located((selector_type, selector_value))
-                        )
-                        wait_success = True
-                        logger.debug(f"Resultados encontrados con: {selector_value}")
-                        break
-                    except TimeoutException:
-                        continue
-
-                if not wait_success:
-                    logger.warning("No se encontraron resultados con ningún selector")
+                # Scroll para cargar contenido
+                try:
+                    self.driver.execute_script("window.scrollTo(0, 500);")
                     time.sleep(2)
+                except Exception:
+                    pass
 
-                # Buscar tarjetas de ofertas
+                # Buscar tarjetas de ofertas con los selectores de InfoJobs
                 job_cards = []
-                card_selectors = [
-                    (By.CSS_SELECTOR, "li[class*='offer']"),
-                    (By.CSS_SELECTOR, "article"),
-                    (By.CSS_SELECTOR, "div.tc_offer"),
-                    (By.CSS_SELECTOR, "div[class*='offer']"),
+                selectors = [
+                    "li.offercard",             # Selector principal
+                    "article.offer-item",       # Artículos de ofertas
+                    "li[class*='offer']",       # Li con clase que contiene 'offer'
+                    "div.tc_offer",             # Div con clase tc_offer
+                    "article",                  # Cualquier article (muy genérico)
                 ]
 
-                for selector_type, selector_value in card_selectors:
+                for selector in selectors:
                     try:
-                        job_cards = self.driver.find_elements(selector_type, selector_value)
-                        if job_cards and len(job_cards) > 0:
-                            logger.debug(f"Encontradas {len(job_cards)} ofertas con: {selector_value}")
+                        elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                        if elements:
+                            job_cards = elements
+                            logger.info(f"✓ Encontradas {len(job_cards)} ofertas con selector: {selector}")
                             break
                     except Exception:
                         continue
 
                 if not job_cards:
-                    logger.debug("No se encontraron más ofertas")
+                    logger.warning(f"No se encontraron ofertas en página {page}")
                     break
 
                 for idx, card in enumerate(job_cards, 1):
