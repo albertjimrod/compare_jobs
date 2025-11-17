@@ -131,95 +131,113 @@ class MonsterScraper(BaseScraper):
         return self.jobs
 
     def _search_keyword(self, keyword: str, location: str) -> List[JobOffer]:
-        """Busca ofertas para una palabra clave."""
+        """Busca ofertas para una palabra clave usando scroll infinito."""
         jobs = []
-        page = 1
-        max_pages = self.config.get('scraping.max_pages_per_session', 5)
 
-        while True:
-            if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
-                break
+        try:
+            # Construir URL de búsqueda
+            params = {
+                'q': keyword,
+                'where': location,
+            }
 
-            if max_pages > 0 and page > max_pages:
-                logger.info(f"Alcanzado límite de {max_pages} páginas")
-                break
+            url = ScrapingUtils.build_search_url(self.JOBS_URL, params)
+            logger.info(f"Navegando a: {url}")
 
-            try:
-                # Construir URL de búsqueda
-                params = {
-                    'q': keyword,
-                    'where': location,
-                    'page': str(page)
-                }
+            self.driver.get(url)
 
-                url = ScrapingUtils.build_search_url(self.JOBS_URL, params)
-                logger.debug(f"Navegando a: {url}")
+            # Esperar carga inicial
+            time.sleep(8)
+            logger.debug("Carga inicial de Monster completada")
 
-                self.driver.get(url)
+            # Scroll infinito
+            previous_count = 0
+            scroll_attempts = 0
+            max_scroll_attempts = 10
+            no_new_offers_count = 0
+            max_no_new = 3
 
-                # Esperar a que la página cargue completamente
-                wait_time = 8 if page > 1 else 6
-                logger.debug(f"Esperando {wait_time}s para carga de Monster página {page}...")
-                time.sleep(wait_time)
+            logger.info("Iniciando scroll infinito para cargar ofertas de Monster...")
 
-                # Scroll agresivo para cargar contenido dinámico
+            while scroll_attempts < max_scroll_attempts:
+                scroll_attempts += 1
+
+                # Scroll agresivo
                 try:
-                    for i in range(3):  # Repetir scroll 3 veces
-                        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                        time.sleep(1.5)
-                        self.driver.execute_script("window.scrollTo(0, 0);")
-                        time.sleep(0.5)
-                    logger.debug("Scroll de Monster completado")
-                except Exception as e:
-                    logger.debug(f"Error en scroll: {e}")
+                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(2.5)
 
-                # Buscar tarjetas de ofertas con los selectores de Monster
-                job_cards = []
+                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight - 600);")
+                    time.sleep(1.5)
+
+                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(2.5)
+
+                except Exception as e:
+                    logger.debug(f"Error en scroll {scroll_attempts}: {e}")
+
+                # Buscar todas las ofertas
+                all_cards = []
                 selectors = [
-                    "div[class*='JobCard']",       # Selector principal de Monster
-                    "article[class*='job']",        # Artículos de trabajo
-                    "div.card-content",             # Contenido de tarjetas
-                    "div[class*='result']",         # Divs de resultados
-                    "[data-job-id]",                # Elementos con ID de trabajo
-                    "article",                      # Cualquier article (muy genérico)
+                    "div[class*='JobCard']",
+                    "article[class*='job']",
+                    "div.card-content",
+                    "div[class*='result']",
+                    "[data-job-id]",
+                    "article",
                 ]
 
                 for selector in selectors:
                     try:
                         elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                        if elements:
-                            job_cards = elements
-                            logger.info(f"✓ Encontradas {len(job_cards)} ofertas con selector: {selector}")
-                            break
+                        if elements and len(elements) > len(all_cards):
+                            all_cards = elements
                     except Exception:
                         continue
 
-                if not job_cards:
-                    logger.debug("No se encontraron más ofertas")
+                current_count = len(all_cards)
+
+                if current_count > previous_count:
+                    new_offers = current_count - previous_count
+                    logger.info(f"  Scroll {scroll_attempts}: {current_count} ofertas totales (+{new_offers} nuevas)")
+                    previous_count = current_count
+                    no_new_offers_count = 0
+                else:
+                    no_new_offers_count += 1
+                    logger.debug(f"  Scroll {scroll_attempts}: Sin ofertas nuevas ({no_new_offers_count}/{max_no_new})")
+
+                    if no_new_offers_count >= max_no_new:
+                        logger.info(f"✓ Scroll completado: No hay más ofertas después de {max_no_new} intentos")
+                        break
+
+                if self.max_jobs > 0 and current_count >= self.max_jobs:
+                    logger.info(f"✓ Alcanzado límite de {self.max_jobs} ofertas")
                     break
 
-                logger.debug(f"Encontradas {len(job_cards)} ofertas en página {page}")
+            # Parsear todas las ofertas
+            logger.info(f"Parseando {len(all_cards)} ofertas de Monster...")
 
-                for idx, card in enumerate(job_cards, 1):
-                    try:
-                        job = self._parse_job_card(card)
-                        if job:
-                            jobs.append(job)
+            for idx, card in enumerate(all_cards, 1):
+                try:
+                    if idx % 10 == 0:
+                        logger.debug(f"Parseando oferta {idx}/{len(all_cards)}...")
+
+                    job = self._parse_job_card(card)
+                    if job:
+                        jobs.append(job)
+                        if idx <= 5 or idx % 10 == 0:
                             logger.info(f"✓ {len(jobs)}. {job.title} - {job.company}")
 
-                        if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
-                            break
+                    if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
+                        logger.info(f"Alcanzado límite de {self.max_jobs} ofertas")
+                        break
 
-                    except Exception as e:
-                        logger.warning(f"Error parseando oferta {idx}: {str(e)}")
-                        continue
+                except Exception as e:
+                    logger.warning(f"Error parseando oferta {idx}: {str(e)}")
+                    continue
 
-                page += 1
-                self._sleep()
-
-            except Exception as e:
-                logger.error(f"Error en página {page}: {str(e)}")
-                break
+        except Exception as e:
+            logger.error(f"Error en búsqueda de Monster: {str(e)}")
 
         return jobs
 

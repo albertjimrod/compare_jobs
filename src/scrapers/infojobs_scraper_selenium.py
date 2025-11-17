@@ -129,108 +129,111 @@ class InfojobsScraperSelenium(BaseScraper):
         return self.jobs
 
     def _search_keyword(self, keyword: str, location: str) -> List[JobOffer]:
-        """Busca ofertas para una palabra clave."""
+        """Busca ofertas para una palabra clave usando scroll infinito."""
         jobs = []
-        page = 1
-        max_pages = self.config.get('scraping.max_pages_per_session', 0)
 
-        while True:
-            if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
-                break
+        try:
+            # InfoJobs usa URLs del tipo: /ofertas-trabajo/data-scientist.html
+            search_url = f"{self.BASE_URL}/ofertas-trabajo/{keyword.replace(' ', '-')}.html"
 
-            if max_pages > 0 and page > max_pages:
-                logger.info(f"Alcanzado límite de {max_pages} páginas")
-                break
+            logger.info(f"Navegando a: {search_url}")
+            self.driver.get(search_url)
 
-            try:
-                # Construir URL de búsqueda
-                params = {
-                    'keyword': keyword.replace(' ', '-'),
-                    'page': str(page)
-                }
+            # Esperar carga inicial (InfoJobs es lenta)
+            time.sleep(12)
+            logger.debug("Carga inicial de InfoJobs completada")
 
-                # InfoJobs usa URLs del tipo: /ofertas-trabajo/data-scientist.html?page=1
-                search_url = f"{self.BASE_URL}/ofertas-trabajo/{keyword.replace(' ', '-')}.html"
-                if page > 1:
-                    search_url += f"?page={page}"
+            # Scroll infinito para cargar todas las ofertas
+            previous_count = 0
+            scroll_attempts = 0
+            max_scroll_attempts = 12
+            no_new_offers_count = 0
+            max_no_new = 4  # InfoJobs es lenta, permitir 4 intentos sin nuevas ofertas
 
-                logger.debug(f"Navegando a: {search_url}")
+            logger.info("Iniciando scroll infinito para cargar ofertas de InfoJobs...")
 
-                self.driver.get(search_url)
+            while scroll_attempts < max_scroll_attempts:
+                scroll_attempts += 1
 
-                # Esperar a que la página cargue completamente (InfoJobs es MUY lenta)
-                wait_time = 12 if page > 1 else 10
-                logger.debug(f"Esperando {wait_time}s para carga de InfoJobs página {page}...")
-                time.sleep(wait_time)
-
-                # Scroll SUPER agresivo para cargar contenido dinámico (InfoJobs lazy loading)
+                # Scroll agresivo
                 try:
-                    for i in range(4):  # Repetir scroll 4 veces (InfoJobs es muy lenta)
-                        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                        time.sleep(2)
-                        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight / 2);")
-                        time.sleep(1)
-                    self.driver.execute_script("window.scrollTo(0, 0);")
-                    time.sleep(1)
-                    logger.debug("Scroll de InfoJobs completado")
-                except Exception as e:
-                    logger.debug(f"Error en scroll: {e}")
+                    # Scroll hasta el final
+                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(3)  # InfoJobs necesita más tiempo
 
-                # Buscar ofertas con múltiples selectores de InfoJobs
-                job_cards = []
+                    # Scroll intermedio
+                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight - 800);")
+                    time.sleep(2)
+
+                    # Scroll final de nuevo
+                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(3)
+
+                except Exception as e:
+                    logger.debug(f"Error en scroll {scroll_attempts}: {e}")
+
+                # Buscar todas las ofertas
+                all_cards = []
                 selectors = [
-                    "li.offercard",                    # Selector principal de InfoJobs
-                    "article.offer-item",              # Artículos de ofertas
-                    "li[class*='offer']",              # Li que contiene 'offer'
-                    "div[class*='offer']",             # Div que contiene 'offer'
-                    "article[class*='job']",           # Artículos de trabajos
-                    "[data-offer-id]",                 # Elementos con ID de oferta
-                    "li.js-offer",                     # Ofertas con clase js-offer
+                    "li.offercard",
+                    "article.offer-item",
+                    "li[class*='offer']",
+                    "div[class*='offer']",
+                    "[data-offer-id]",
+                    "li.js-offer",
                 ]
 
                 for selector in selectors:
                     try:
                         elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                        if elements:
-                            job_cards = elements
-                            logger.info(f"✓ Encontradas {len(job_cards)} ofertas con selector: {selector}")
-                            break
+                        if elements and len(elements) > len(all_cards):
+                            all_cards = elements
                     except Exception:
                         continue
 
-                if not job_cards:
-                    logger.warning(f"No se encontraron ofertas en página {page}")
-                    # Similar a Indeed - solo terminar si ya teníamos ofertas
-                    if page > 1 and len(jobs) > 0:
-                        logger.info("Fin de resultados alcanzado")
-                        break
-                    if page == 1:
-                        break
-                    page += 1
-                    continue
+                current_count = len(all_cards)
 
-                logger.debug(f"Encontradas {len(job_cards)} ofertas en página {page}")
+                if current_count > previous_count:
+                    new_offers = current_count - previous_count
+                    logger.info(f"  Scroll {scroll_attempts}: {current_count} ofertas totales (+{new_offers} nuevas)")
+                    previous_count = current_count
+                    no_new_offers_count = 0
+                else:
+                    no_new_offers_count += 1
+                    logger.debug(f"  Scroll {scroll_attempts}: Sin ofertas nuevas ({no_new_offers_count}/{max_no_new})")
 
-                for idx, card in enumerate(job_cards, 1):
-                    try:
-                        job = self._parse_job_card(card)
-                        if job:
-                            jobs.append(job)
+                    if no_new_offers_count >= max_no_new:
+                        logger.info(f"✓ Scroll completado: No hay más ofertas después de {max_no_new} intentos")
+                        break
+
+                if self.max_jobs > 0 and current_count >= self.max_jobs:
+                    logger.info(f"✓ Alcanzado límite de {self.max_jobs} ofertas")
+                    break
+
+            # Parsear todas las ofertas
+            logger.info(f"Parseando {len(all_cards)} ofertas de InfoJobs...")
+
+            for idx, card in enumerate(all_cards, 1):
+                try:
+                    if idx % 10 == 0:
+                        logger.debug(f"Parseando oferta {idx}/{len(all_cards)}...")
+
+                    job = self._parse_job_card(card)
+                    if job:
+                        jobs.append(job)
+                        if idx <= 5 or idx % 15 == 0:
                             logger.info(f"✓ {len(jobs)}. {job.title} - {job.company}")
 
-                        if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
-                            break
+                    if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
+                        logger.info(f"Alcanzado límite de {self.max_jobs} ofertas")
+                        break
 
-                    except Exception as e:
-                        logger.warning(f"Error parseando oferta {idx}: {str(e)}")
-                        continue
+                except Exception as e:
+                    logger.warning(f"Error parseando oferta {idx}: {str(e)}")
+                    continue
 
-                page += 1
-                self._sleep()
-
-            except Exception as e:
-                logger.error(f"Error en página {page}: {str(e)}")
-                break
+        except Exception as e:
+            logger.error(f"Error en búsqueda de InfoJobs: {str(e)}")
 
         return jobs
 
