@@ -241,12 +241,20 @@ class IndeedScraperSelenium(BaseScraper):
                 # Navegar a la página
                 self.driver.get(url)
 
-                # Esperar a que la página cargue completamente
-                time.sleep(4)
+                # Esperar más tiempo en páginas posteriores (cargan más lento)
+                wait_time = 6 if page > 0 else 4
+                time.sleep(wait_time)
 
-                # Scroll para cargar contenido dinámico
-                self._random_scroll()
-                time.sleep(2)
+                # Scroll más agresivo para cargar contenido dinámico
+                try:
+                    self.driver.execute_script("window.scrollTo(0, 800);")
+                    time.sleep(1)
+                    self.driver.execute_script("window.scrollTo(0, 1600);")
+                    time.sleep(1)
+                    self.driver.execute_script("window.scrollTo(0, 0);")
+                    time.sleep(1)
+                except Exception:
+                    pass
 
                 # Buscar ofertas con selectores específicos de Indeed
                 job_cards = []
@@ -258,6 +266,8 @@ class IndeedScraperSelenium(BaseScraper):
                     "td.resultContent",         # Contenido de resultado
                     "div.cardOutline",          # Tarjetas outline
                     "div.slider_item",          # Items en slider
+                    "div[class*='job_']",       # Cualquier div con 'job_'
+                    "div[class*='result']",     # Divs de resultados
                 ]
 
                 for selector in selectors:
@@ -272,7 +282,17 @@ class IndeedScraperSelenium(BaseScraper):
 
                 if not job_cards:
                     logger.warning(f"No se encontraron ofertas en página {page + 1}")
-                    break
+                    # No terminar inmediatamente - puede ser un problema temporal
+                    # Solo terminar si ya encontramos ofertas antes (indica fin real)
+                    if page > 0 and len(jobs) > 0:
+                        logger.info("Fin de resultados alcanzado")
+                        break
+                    # Si es la primera página y no hay resultados, sí terminar
+                    if page == 0:
+                        break
+                    # Para páginas intermedias, continuar a la siguiente
+                    page += 1
+                    continue
 
                 for idx, card in enumerate(job_cards, 1):
                     try:
@@ -353,15 +373,18 @@ class IndeedScraperSelenium(BaseScraper):
                 (By.CSS_SELECTOR, "div.job-snippet"),
                 (By.CSS_SELECTOR, "ul.job-snippet"),
                 (By.CSS_SELECTOR, "div[class*='snippet']"),
+                (By.CSS_SELECTOR, "div[class*='description']"),
                 (By.CSS_SELECTOR, "td.resultContent div"),
                 (By.CSS_SELECTOR, ".jobCardShelfContainer div"),
+                (By.CSS_SELECTOR, "div[class*='jobCard'] div"),
+                (By.CSS_SELECTOR, "[data-testid*='description']"),
             ]
 
             for selector_type, selector_value in description_selectors:
                 try:
                     desc_elem = card.find_element(selector_type, selector_value)
                     desc_text = ScrapingUtils.clean_text(desc_elem.text)
-                    if desc_text and len(desc_text) > 20:  # Filtrar textos muy cortos
+                    if desc_text and len(desc_text) > 15:  # Reducido de 20 a 15
                         description = desc_text
                         logger.debug(f"   Descripción extraída con selector: {selector_value}")
                         break
@@ -374,11 +397,12 @@ class IndeedScraperSelenium(BaseScraper):
                     card_text = ScrapingUtils.clean_text(card.text)
                     # Remover título y empresa del texto completo
                     card_text = card_text.replace(title, "").replace(company, "")
-                    if len(card_text) > 50:  # Asegurar que hay contenido útil
+                    # Reducir threshold de 50 a 30 para capturar más textos
+                    if len(card_text) > 30:
                         description = card_text
                         logger.debug(f"   Descripción extraída del texto completo de la tarjeta")
                     else:
-                        logger.debug(f"   ⚠️ No se pudo extraer descripción (texto muy corto)")
+                        logger.debug(f"   ⚠️ Descripción muy corta ({len(card_text)} chars), usando título")
                 except Exception as e:
                     logger.debug(f"   ⚠️ Error extrayendo descripción: {str(e)}")
                     pass

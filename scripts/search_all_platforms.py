@@ -172,7 +172,7 @@ def main():
     logger.info("\n📄 Generando informe HTML...")
     reporter = ReportGenerator(config)
     try:
-        report_path = reporter.generate_report(all_jobs, analysis)
+        report_path = reporter.generate_html_report(all_jobs, analysis)
         logger.info(f"✅ Informe generado: {report_path}")
     except Exception as e:
         logger.error(f"❌ Error generando informe: {e}")

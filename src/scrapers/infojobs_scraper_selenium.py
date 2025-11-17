@@ -158,25 +158,52 @@ class InfojobsScraperSelenium(BaseScraper):
 
                 self.driver.get(search_url)
 
-                # Esperar a que carguen los resultados
+                # Esperar a que la página cargue completamente (InfoJobs es lenta)
+                time.sleep(8)
+
+                # Scroll más agresivo para cargar contenido dinámico
                 try:
-                    WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, "li[class*='offer']"))
-                    )
-                except TimeoutException:
-                    logger.warning("Timeout esperando resultados")
-                    break
+                    self.driver.execute_script("window.scrollTo(0, 800);")
+                    time.sleep(2)
+                    self.driver.execute_script("window.scrollTo(0, 1600);")
+                    time.sleep(2)
+                    self.driver.execute_script("window.scrollTo(0, 0);")
+                    time.sleep(1)
+                except Exception:
+                    pass
 
-                # Encontrar ofertas - InfoJobs usa diferentes selectores
-                job_cards = self.driver.find_elements(By.CSS_SELECTOR, "li[class*='offer']")
+                # Buscar ofertas con múltiples selectores de InfoJobs
+                job_cards = []
+                selectors = [
+                    "li.offercard",                    # Selector principal de InfoJobs
+                    "article.offer-item",              # Artículos de ofertas
+                    "li[class*='offer']",              # Li que contiene 'offer'
+                    "div[class*='offer']",             # Div que contiene 'offer'
+                    "article[class*='job']",           # Artículos de trabajos
+                    "[data-offer-id]",                 # Elementos con ID de oferta
+                    "li.js-offer",                     # Ofertas con clase js-offer
+                ]
+
+                for selector in selectors:
+                    try:
+                        elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                        if elements:
+                            job_cards = elements
+                            logger.info(f"✓ Encontradas {len(job_cards)} ofertas con selector: {selector}")
+                            break
+                    except Exception:
+                        continue
 
                 if not job_cards:
-                    # Intentar selector alternativo
-                    job_cards = self.driver.find_elements(By.CSS_SELECTOR, "article.offer-item")
-
-                if not job_cards:
-                    logger.debug("No se encontraron más ofertas")
-                    break
+                    logger.warning(f"No se encontraron ofertas en página {page}")
+                    # Similar a Indeed - solo terminar si ya teníamos ofertas
+                    if page > 1 and len(jobs) > 0:
+                        logger.info("Fin de resultados alcanzado")
+                        break
+                    if page == 1:
+                        break
+                    page += 1
+                    continue
 
                 logger.debug(f"Encontradas {len(job_cards)} ofertas en página {page}")
 
