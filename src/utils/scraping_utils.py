@@ -114,14 +114,14 @@ class ScrapingUtils:
             text: Texto donde buscar información salarial
 
         Returns:
-            Diccionario con salary_min, salary_max, currency
+            Diccionario con salary_min, salary_max, salary_currency
         """
         import re
 
         result = {
             'salary_min': None,
             'salary_max': None,
-            'currency': 'EUR'
+            'salary_currency': 'EUR'
         }
 
         if not text:
@@ -146,7 +146,7 @@ class ScrapingUtils:
 
                     # Detectar moneda
                     if '$' in text:
-                        result['currency'] = 'USD'
+                        result['salary_currency'] = 'USD'
 
                     break
                 except (ValueError, IndexError):

@@ -207,7 +207,7 @@ class GenericScraper(BaseScraper):
 
             # 6. Extraer salario (si está disponible)
             salary_elem = elem.find('span', class_='salary')
-            salary_info = {'salary_min': None, 'salary_max': None, 'currency': 'EUR'}
+            salary_info = {'salary_min': None, 'salary_max': None, 'salary_currency': 'EUR'}
             if salary_elem:
                 salary_text = salary_elem.get_text()
                 salary_info = ScrapingUtils.extract_salary(salary_text)
