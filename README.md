@@ -40,8 +40,10 @@ Muchas plataformas modernas (especialmente **Indeed, LinkedIn, Glassdoor**) tien
 
 Este proyecto incluye soporte completo para **Selenium**, que automatiza un navegador real para evitar bloqueos:
 
-- ✅ **Instalación simple:** `pip install selenium webdriver-manager`
-- ✅ **Uso automático:** El sistema detecta y usa Selenium si está instalado
+- ✅ **Instalación:** `pip install selenium webdriver-manager`
+- ⚠️ **Requiere Chrome:** Debes tener Chrome instalado en tu sistema
+- ✅ **Verificación rápida:** `python scripts/check_chrome.py`
+- ✅ **Uso automático:** El sistema detecta y usa Selenium si está disponible
 - ✅ **Mayor tasa de éxito:** ~70% vs ~10% con requests
 - ✅ **Enlaces en el informe:** Cada oferta incluye enlace clickeable a la oferta original
 

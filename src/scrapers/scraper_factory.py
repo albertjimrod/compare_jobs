@@ -36,7 +36,8 @@ class ScraperFactory:
     @staticmethod
     def create_scraper(
         platform: str,
-        config: Optional[ConfigLoader] = None
+        config: Optional[ConfigLoader] = None,
+        allow_fallback: bool = True
     ) -> Optional[BaseScraper]:
         """
         Crea un scraper para la plataforma especificada.
@@ -44,6 +45,7 @@ class ScraperFactory:
         Args:
             platform: Nombre de la plataforma (ej: 'indeed', 'infojobs')
             config: Configuración del sistema
+            allow_fallback: Si True, usa scraper de requests si Selenium falla
 
         Returns:
             Instancia del scraper o None si no existe
@@ -67,7 +69,31 @@ class ScraperFactory:
             )
             return None
 
-        return scraper_class(config)
+        # Intentar crear el scraper
+        try:
+            scraper = scraper_class(config)
+            return scraper
+
+        except (ImportError, RuntimeError) as e:
+            error_msg = str(e)
+
+            # Si es Indeed con Selenium y falla, intentar fallback a requests
+            if platform_lower == 'indeed' and allow_fallback and SELENIUM_AVAILABLE:
+                if 'Chrome' in error_msg or 'cannot find' in error_msg:
+                    logger.warning(
+                        "⚠️  Selenium no puede ejecutarse (Chrome no instalado). "
+                        "Usando scraper de requests como fallback..."
+                    )
+                    logger.info(
+                        "💡 Nota: El scraper de requests tiene menor tasa de éxito (~10% vs ~70%).\n"
+                        "   Para mejor rendimiento, instala Chrome y vuelve a intentar."
+                    )
+                    # Usar scraper de requests como fallback
+                    return IndeedScraper(config)
+
+            # Si no hay fallback posible, re-lanzar el error
+            logger.error(f"No se pudo crear scraper para '{platform}': {error_msg}")
+            raise
 
     @staticmethod
     def get_available_platforms() -> list:

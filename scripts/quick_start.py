@@ -103,7 +103,24 @@ def main():
 
     # 2. Crear scraper (en este ejemplo, solo Indeed)
     logger.info("2. Creando scraper de Indeed...")
-    scraper = ScraperFactory.create_scraper('indeed', config)
+    try:
+        scraper = ScraperFactory.create_scraper('indeed', config, allow_fallback=True)
+    except Exception as e:
+        logger.error(f"No se pudo crear el scraper: {str(e)}")
+        print("\n" + "="*70)
+        print("❌ ERROR AL CREAR SCRAPER")
+        print("="*70)
+        print("\nNo se pudo inicializar el scraper de Indeed.")
+        print("\n🔧 Posibles soluciones:")
+        print("\n1. INSTALAR CHROME (para usar Selenium):")
+        print("   Ubuntu/Debian:")
+        print("     sudo apt update && sudo apt install google-chrome-stable")
+        print("\n2. USAR SCRAPER DE REQUESTS (menos confiable):")
+        print("     Editar el código para forzar uso de requests")
+        print("\n3. PROBAR OTRAS PLATAFORMAS:")
+        print("     python -m src.main --platforms infojobs")
+        print("\n" + "="*70 + "\n")
+        return
 
     if not scraper:
         logger.error("No se pudo crear el scraper")

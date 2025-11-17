@@ -115,7 +115,32 @@ class IndeedScraperSelenium(BaseScraper):
             return driver
 
         except Exception as e:
-            logger.error(f"Error configurando Selenium WebDriver: {str(e)}")
+            error_msg = str(e)
+
+            # Detectar error de Chrome no instalado
+            if 'cannot find Chrome binary' in error_msg or 'chrome not found' in error_msg.lower():
+                logger.error("❌ Chrome no está instalado en el sistema")
+                logger.error(
+                    "\n📦 INSTALAR CHROME:\n"
+                    "   Ubuntu/Debian:\n"
+                    "     wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -\n"
+                    "     sudo sh -c 'echo \"deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main\" >> /etc/apt/sources.list.d/google-chrome.list'\n"
+                    "     sudo apt update\n"
+                    "     sudo apt install google-chrome-stable\n\n"
+                    "   Fedora/RHEL:\n"
+                    "     sudo dnf install google-chrome-stable\n\n"
+                    "   Arch Linux:\n"
+                    "     yay -S google-chrome\n\n"
+                    "   macOS:\n"
+                    "     brew install --cask google-chrome\n\n"
+                    "   O descarga desde: https://www.google.com/chrome/"
+                )
+                raise RuntimeError(
+                    "Chrome no está instalado. Selenium requiere Chrome para funcionar. "
+                    "Ver instrucciones arriba para instalar Chrome."
+                )
+
+            logger.error(f"Error configurando Selenium WebDriver: {error_msg}")
             raise
 
     def scrape_jobs(

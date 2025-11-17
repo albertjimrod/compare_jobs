@@ -43,6 +43,21 @@ Selenium automatiza un **navegador real** (Chrome, Firefox):
 
 ## Instalación
 
+### ⚡ Verificación Rápida (Recomendado)
+
+Antes de instalar, ejecuta el script de verificación:
+
+```bash
+python scripts/check_chrome.py
+```
+
+Este script verifica:
+- ✅ Si Selenium está instalado
+- ✅ Si Chrome está instalado
+- 📦 Proporciona instrucciones específicas para tu sistema operativo
+
+---
+
 ### Paso 1: Instalar Dependencias
 
 #### Opción A: Con requirements.txt (recomendado)
@@ -74,16 +89,27 @@ conda activate job-scraper-env
 python -c "import selenium; from webdriver_manager.chrome import ChromeDriverManager; print('✅ Selenium instalado correctamente')"
 ```
 
-### Paso 3: Navegador Chrome
+### Paso 3: Navegador Chrome ⚠️ REQUERIDO
 
-Selenium usa Chrome por defecto. Asegúrate de tener Chrome instalado:
+**IMPORTANTE:** Selenium **requiere** que Chrome esté instalado en tu sistema.
 
-**Linux:**
+**Verificar si Chrome está instalado:**
 ```bash
-# Ubuntu/Debian
-sudo apt install google-chrome-stable
+python scripts/check_chrome.py
+```
 
-# Fedora
+**Si Chrome NO está instalado:**
+
+**Linux - Ubuntu/Debian:**
+```bash
+wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+sudo apt update
+sudo apt install google-chrome-stable
+```
+
+**Linux - Fedora/RHEL:**
+```bash
 sudo dnf install google-chrome-stable
 ```
 
