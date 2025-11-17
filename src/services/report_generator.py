@@ -244,11 +244,12 @@ class ReportGenerator:
 
         <div class="section">
             <h2>Tecnologías Más Demandadas</h2>
-            {% if charts.top_technologies %}
+            {% if charts.get('top_technologies') %}
             <div class="chart-container">
                 <img src="{{ charts.top_technologies }}" alt="Top Tecnologías">
             </div>
             {% endif %}
+            {% if technologies %}
             <table>
                 <thead>
                     <tr>
@@ -267,15 +268,19 @@ class ReportGenerator:
                     {% endfor %}
                 </tbody>
             </table>
+            {% else %}
+            <p style="color: #7f8c8d; font-style: italic;">No se detectaron tecnologías en las ofertas recopiladas.</p>
+            {% endif %}
         </div>
 
         <div class="section">
             <h2>Empresas que Más Publican</h2>
-            {% if charts.top_companies %}
+            {% if charts.get('top_companies') %}
             <div class="chart-container">
                 <img src="{{ charts.top_companies }}" alt="Top Empresas">
             </div>
             {% endif %}
+            {% if companies %}
             <table>
                 <thead>
                     <tr>
@@ -294,6 +299,9 @@ class ReportGenerator:
                     {% endfor %}
                 </tbody>
             </table>
+            {% else %}
+            <p style="color: #7f8c8d; font-style: italic;">No hay datos de empresas disponibles.</p>
+            {% endif %}
         </div>
 
         {% if salary_data.has_data %}
@@ -318,23 +326,100 @@ class ReportGenerator:
         </div>
         {% endif %}
 
-        {% if charts.location_distribution %}
+        <div class="section">
+            <h2>Plataformas de Origen</h2>
+            {% if charts.get('platforms_distribution') %}
+            <div class="chart-container">
+                <img src="{{ charts.platforms_distribution }}" alt="Distribución por Plataforma">
+            </div>
+            {% endif %}
+            {% if platforms %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Plataforma</th>
+                        <th>Ofertas</th>
+                        <th>Porcentaje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for platform, data in platforms.items() %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ platform }}</td>
+                        <td>{{ data.count }}</td>
+                        <td>{{ data.percentage|round(1) }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color: #7f8c8d; font-style: italic;">No hay datos de plataformas disponibles.</p>
+            {% endif %}
+        </div>
+
         <div class="section">
             <h2>Distribución Geográfica</h2>
+            {% if charts.get('location_distribution') %}
             <div class="chart-container">
                 <img src="{{ charts.location_distribution }}" alt="Distribución por Ubicación">
             </div>
+            {% endif %}
+            {% if locations %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Ubicación</th>
+                        <th>Ofertas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for location, count in locations[:15] %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ location }}</td>
+                        <td>{{ count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color: #7f8c8d; font-style: italic;">No hay datos de ubicaciones disponibles.</p>
+            {% endif %}
         </div>
-        {% endif %}
 
-        {% if charts.contract_type_distribution %}
         <div class="section">
             <h2>Tipos de Contrato</h2>
+            {% if charts.get('contract_type_distribution') %}
             <div class="chart-container">
                 <img src="{{ charts.contract_type_distribution }}" alt="Tipos de Contrato">
             </div>
+            {% endif %}
+            {% if contract_types %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tipo de Contrato</th>
+                        <th>Ofertas</th>
+                        <th>Porcentaje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for contract, data in contract_types.items() %}
+                    <tr>
+                        <td>{{ contract }}</td>
+                        <td>{{ data.count }}</td>
+                        <td>{{ data.percentage|round(1) }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color: #7f8c8d; font-style: italic;">No hay datos de tipos de contrato disponibles.</p>
+            {% endif %}
         </div>
-        {% endif %}
 
         {% if charts.technology_correlation %}
         <div class="section">
@@ -402,6 +487,25 @@ class ReportGenerator:
         """
         logger.info("Generando informe HTML...")
 
+        # Preparar datos de plataformas
+        platforms_data = {}
+        if 'platforms' in analysis:
+            total_jobs = analysis['total_jobs']
+            for platform, count in analysis['platforms']['counts'].items():
+                platforms_data[platform] = {
+                    'count': count,
+                    'percentage': (count / total_jobs * 100) if total_jobs > 0 else 0
+                }
+
+        # Preparar datos de tipos de contrato
+        contract_types_data = {}
+        if 'contract_types' in analysis:
+            for contract_type, count in analysis['contract_types']['counts'].items():
+                contract_types_data[contract_type] = {
+                    'count': count,
+                    'percentage': analysis['contract_types']['percentages'].get(contract_type, 0)
+                }
+
         # Preparar datos para la plantilla
         template_data = {
             'generation_date': datetime.now().strftime('%d de %B de %Y, %H:%M'),
@@ -409,8 +513,11 @@ class ReportGenerator:
             'executive_summary': self.reports_config.get('executive_summary', True),
             'insights': insights,
             'stats': analysis['summary_stats'],
-            'technologies': list(analysis['technologies']['top_20'].items()),
-            'companies': list(analysis['companies']['top_20'].items()),
+            'technologies': list(analysis['technologies']['top_20'].items()) if analysis['technologies']['top_20'] else [],
+            'companies': list(analysis['companies']['top_20'].items()) if analysis['companies']['top_20'] else [],
+            'platforms': platforms_data,
+            'locations': list(analysis['locations']['top_15'].items()) if analysis['locations']['top_15'] else [],
+            'contract_types': contract_types_data,
             'salary_data': analysis['salaries'],
             'charts': {
                 key: str(path.relative_to(self.output_dir.parent))
