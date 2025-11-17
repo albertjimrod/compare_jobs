@@ -172,9 +172,21 @@ class IndeedScraperSelenium(BaseScraper):
             self.driver = self._setup_driver()
 
             # Scrapear para cada keyword
-            for keyword in keywords:
+            for idx, keyword in enumerate(keywords, 1):
                 try:
-                    logger.info(f"Buscando: '{keyword}' en {location}")
+                    logger.info(f"Buscando: '{keyword}' en {location} ({idx}/{len(keywords)})")
+
+                    # ANTI-BAN: Delay entre keywords (excepto el primero)
+                    if idx > 1:
+                        delay = 90  # 90 segundos entre keywords
+                        logger.info(f"⏰ Esperando {delay}s entre keywords (anti-ban)...")
+                        time.sleep(delay)
+
+                        # Navegar a homepage para "limpiar" sesión
+                        logger.debug("Navegando a homepage para limpiar sesión...")
+                        self.driver.get(self.BASE_URL)
+                        time.sleep(5)
+
                     jobs = self._search_keyword(keyword, location)
                     self.jobs.extend(jobs)
 
@@ -232,6 +244,21 @@ class IndeedScraperSelenium(BaseScraper):
             try:
                 page_title = self.driver.title
                 logger.debug(f"Título de página: {page_title}")
+
+                # DETECTAR BLOQUEO CLOUDFLARE/CAPTCHA
+                if "momento" in page_title.lower() or "wait" in page_title.lower():
+                    logger.warning(f"⚠️  DETECTADO BLOQUEO: '{page_title}'")
+                    logger.warning("Esperando 120s para que pase el bloqueo...")
+                    time.sleep(120)
+
+                    # Recargar página
+                    logger.debug("Recargando página después del bloqueo...")
+                    self.driver.refresh()
+                    time.sleep(10)
+
+                    # Verificar de nuevo
+                    page_title = self.driver.title
+                    logger.debug(f"Nuevo título: {page_title}")
             except:
                 pass
 
