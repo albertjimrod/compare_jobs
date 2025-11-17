@@ -7,15 +7,34 @@ import argparse
 import sys
 from pathlib import Path
 from typing import List, Optional
-from loguru import logger
 
-from .models.job_offer import JobOffer
-from .scrapers.scraper_factory import ScraperFactory
-from .services.data_storage import DataStorage
-from .services.data_analyzer import DataAnalyzer
-from .services.data_visualizer import DataVisualizer
-from .services.report_generator import ReportGenerator
-from .utils.config_loader import ConfigLoader
+# Verificar dependencias críticas antes de continuar
+try:
+    from loguru import logger
+except ImportError:
+    print("\n" + "="*60)
+    print("❌ ERROR: Falta instalar 'loguru'")
+    print("="*60)
+    print("\nEjecuta uno de estos comandos para instalar dependencias:")
+    print("  conda env create -f environment.yml  # Con Conda")
+    print("  pip install -r requirements.txt      # Con pip")
+    print("="*60 + "\n")
+    sys.exit(1)
+
+try:
+    from .models.job_offer import JobOffer
+    from .scrapers.scraper_factory import ScraperFactory
+    from .services.data_storage import DataStorage
+    from .services.data_analyzer import DataAnalyzer
+    from .services.data_visualizer import DataVisualizer
+    from .services.report_generator import ReportGenerator
+    from .utils.config_loader import ConfigLoader
+except ImportError as e:
+    logger.error(f"Error importando módulos: {e}")
+    logger.error("\nAsegúrate de haber instalado todas las dependencias:")
+    logger.error("  conda env create -f environment.yml  # Con Conda")
+    logger.error("  pip install -r requirements.txt      # Con pip")
+    sys.exit(1)
 
 
 def setup_logging(config: ConfigLoader):

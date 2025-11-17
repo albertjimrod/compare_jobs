@@ -4,7 +4,13 @@ Utilidades para web scraping.
 
 import random
 from typing import Dict, Optional
-from fake_useragent import UserAgent
+
+# Importación opcional de fake_useragent
+try:
+    from fake_useragent import UserAgent
+    HAS_FAKE_UA = True
+except ImportError:
+    HAS_FAKE_UA = False
 
 
 class ScrapingUtils:
@@ -25,12 +31,12 @@ class ScrapingUtils:
         Obtiene un user agent aleatorio.
 
         Args:
-            use_fake_ua: Si True, usa fake_useragent library
+            use_fake_ua: Si True, usa fake_useragent library (si está disponible)
 
         Returns:
             String con user agent
         """
-        if use_fake_ua:
+        if use_fake_ua and HAS_FAKE_UA:
             try:
                 ua = UserAgent()
                 return ua.random

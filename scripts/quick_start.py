@@ -10,6 +10,64 @@ from pathlib import Path
 # Añadir src al path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+
+def check_dependencies():
+    """Verifica que las dependencias necesarias estén instaladas."""
+    missing = []
+
+    try:
+        import pandas
+    except ImportError:
+        missing.append('pandas')
+
+    try:
+        import requests
+    except ImportError:
+        missing.append('requests')
+
+    try:
+        import bs4
+    except ImportError:
+        missing.append('beautifulsoup4')
+
+    try:
+        import loguru
+    except ImportError:
+        missing.append('loguru')
+
+    try:
+        import yaml
+    except ImportError:
+        missing.append('pyyaml')
+
+    if missing:
+        print("\n" + "="*60)
+        print("❌ ERROR: FALTAN DEPENDENCIAS")
+        print("="*60)
+        print("\nNo se pueden importar los siguientes módulos:")
+        for pkg in missing:
+            print(f"  - {pkg}")
+
+        print("\n📦 Para instalar las dependencias, ejecuta uno de estos comandos:")
+        print("\nOpción 1 - Con Conda (recomendado):")
+        print("  conda env create -f environment.yml")
+        print("  conda activate job-scraper-env")
+
+        print("\nOpción 2 - Con pip:")
+        print("  pip install -r requirements.txt")
+
+        print("\nOpción 3 - Instalación rápida de lo mínimo:")
+        print(f"  pip install {' '.join(missing)}")
+
+        print("\n" + "="*60)
+        print("Después de instalar, vuelve a ejecutar este script.")
+        print("="*60 + "\n")
+        sys.exit(1)
+
+
+# Verificar dependencias antes de importar
+check_dependencies()
+
 from src.scrapers.scraper_factory import ScraperFactory
 from src.services.data_storage import DataStorage
 from src.services.data_analyzer import DataAnalyzer
