@@ -221,11 +221,20 @@ class IndeedScraperSelenium(BaseScraper):
                 params
             )
 
-            logger.info(f"Navegando a: {url}")
+            logger.info(f"📍 Buscando '{keyword}' en {location}")
+            logger.info(f"🔗 URL: {url}")
             self.driver.get(url)
 
             # Esperar carga inicial
             time.sleep(6)
+
+            # Debug: verificar título de la página
+            try:
+                page_title = self.driver.title
+                logger.debug(f"Título de página: {page_title}")
+            except:
+                pass
+
             logger.debug("Carga inicial completada")
 
             # Usar scroll infinito para cargar TODAS las ofertas
@@ -259,6 +268,7 @@ class IndeedScraperSelenium(BaseScraper):
 
                 # Buscar TODAS las ofertas actualmente en la página
                 all_cards = []
+                selector_used = None
                 selectors = [
                     "div.job_seen_beacon",
                     "div[data-jk]",
@@ -271,21 +281,30 @@ class IndeedScraperSelenium(BaseScraper):
                 for selector in selectors:
                     try:
                         elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                        if elements and len(elements) > all_cards.__len__():
+                        if elements and len(elements) > len(all_cards):
                             all_cards = elements
-                    except Exception:
+                            selector_used = selector
+                    except Exception as e:
+                        logger.debug(f"Error con selector {selector}: {e}")
                         continue
 
                 current_count = len(all_cards)
 
                 if current_count > previous_count:
                     new_offers = current_count - previous_count
-                    logger.info(f"  Scroll {scroll_attempts}: {current_count} ofertas totales (+{new_offers} nuevas)")
+                    logger.info(f"  Scroll {scroll_attempts}: {current_count} ofertas totales (+{new_offers} nuevas) [selector: {selector_used}]")
                     previous_count = current_count
                     no_new_offers_count = 0  # Reiniciar contador
                 else:
                     no_new_offers_count += 1
-                    logger.debug(f"  Scroll {scroll_attempts}: Sin ofertas nuevas ({no_new_offers_count}/{max_no_new})")
+                    if current_count == 0:
+                        # DEBUG: Intentar detectar por qué no hay ofertas
+                        try:
+                            page_text = self.driver.find_element(By.TAG_NAME, "body").text[:500]
+                            logger.debug(f"  Página parece vacía. Primeros 500 chars: {page_text}")
+                        except:
+                            pass
+                    logger.debug(f"  Scroll {scroll_attempts}: Sin ofertas nuevas ({no_new_offers_count}/{max_no_new}) [total actual: {current_count}]")
 
                     if no_new_offers_count >= max_no_new:
                         logger.info(f"✓ Scroll completado: No hay más ofertas después de {max_no_new} intentos")
