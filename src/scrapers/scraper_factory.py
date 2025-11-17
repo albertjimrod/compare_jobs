@@ -12,6 +12,7 @@ from .infojobs_scraper import InfojobsScraper
 # Importar scraper de Selenium si está disponible
 try:
     from .indeed_scraper_selenium import IndeedScraperSelenium
+    from .infojobs_scraper_selenium import InfojobsScraperSelenium
     SELENIUM_AVAILABLE = True
 except ImportError:
     SELENIUM_AVAILABLE = False
@@ -54,8 +55,10 @@ class ScraperFactory:
         'indeed-requests': IndeedScraper,  # Versión requests (menos confiable)
         'indeed-selenium': IndeedScraperSelenium if SELENIUM_AVAILABLE else None,
 
-        # InfoJobs (existente)
-        'infojobs': InfojobsScraper,
+        # InfoJobs (con Selenium y fallback)
+        'infojobs': InfojobsScraperSelenium if SELENIUM_AVAILABLE else InfojobsScraper,
+        'infojobs-requests': InfojobsScraper,  # Versión requests (menos confiable)
+        'infojobs-selenium': InfojobsScraperSelenium if SELENIUM_AVAILABLE else None,
 
         # Plataformas principales (requieren Selenium)
         'linkedin': LinkedInScraper if SELENIUM_AVAILABLE else None,

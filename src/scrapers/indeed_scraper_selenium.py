@@ -216,10 +216,10 @@ class IndeedScraperSelenium(BaseScraper):
             if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
                 break
 
-            # Límite de páginas por sesión (anti-ban)
-            if page >= max_pages:
+            # Límite de páginas por sesión (anti-ban) - solo si max_pages > 0
+            if max_pages > 0 and page >= max_pages:
                 logger.info(
-                    f"Alcanzado límite de {max_pages} páginas por sesión (anti-ban)"
+                    f"Alcanzado límite de {max_pages} páginas por sesión"
                 )
                 break
 

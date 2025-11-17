@@ -1,8 +1,8 @@
 """
-Scraper para Monster.
+Scraper para InfoJobs usando Selenium.
 
-Monster es una plataforma de empleo internacional con presencia en España.
-Tiene protección anti-scraping moderada.
+InfoJobs es uno de los portales de empleo más populares en España.
+Este scraper usa Selenium para evitar detección anti-scraping.
 """
 
 import time
@@ -24,19 +24,18 @@ from ..models.job_offer import JobOffer, WorkLocation
 from ..utils.scraping_utils import ScrapingUtils
 
 
-class MonsterScraper(BaseScraper):
-    """Scraper para Monster usando Selenium."""
+class InfojobsScraperSelenium(BaseScraper):
+    """Scraper para InfoJobs usando Selenium."""
 
-    BASE_URL = "https://www.monster.es"
-    JOBS_URL = "https://www.monster.es/empleos/buscar"
+    BASE_URL = "https://www.infojobs.net"
 
     def __init__(self, config=None):
-        """Inicializa el scraper de Monster."""
+        """Inicializa el scraper de InfoJobs."""
         super().__init__(config)
 
         if not SELENIUM_AVAILABLE:
             raise ImportError(
-                "Monster scraper requiere Selenium. "
+                "InfoJobs scraper requiere Selenium. "
                 "Instala con: pip install selenium webdriver-manager"
             )
 
@@ -44,10 +43,10 @@ class MonsterScraper(BaseScraper):
 
     def _get_platform_name(self) -> str:
         """Retorna el nombre de la plataforma."""
-        return "Monster"
+        return "InfoJobs"
 
     def _setup_driver(self):
-        """Configura driver de Selenium para Monster."""
+        """Configura driver de Selenium para InfoJobs."""
         from selenium.webdriver.chrome.service import Service
         from selenium.webdriver.chrome.options import Options
         from webdriver_manager.chrome import ChromeDriverManager
@@ -81,7 +80,7 @@ class MonsterScraper(BaseScraper):
             driver.implicitly_wait(2)
             driver.set_page_load_timeout(self.config.get('scraping.page_load_timeout', 30))
 
-            logger.info("✅ Monster WebDriver configurado")
+            logger.info("✅ InfoJobs WebDriver configurado")
             return driver
 
         except Exception as e:
@@ -93,7 +92,7 @@ class MonsterScraper(BaseScraper):
         keywords: Optional[List[str]] = None,
         location: Optional[str] = None
     ) -> List[JobOffer]:
-        """Recopila ofertas de Monster."""
+        """Recopila ofertas de InfoJobs."""
         if keywords is None:
             keywords = self.config.get('search_terms.keywords', ['data scientist'])
 
@@ -101,7 +100,6 @@ class MonsterScraper(BaseScraper):
             location = "España"
 
         logger.info(f"Iniciando scraping de {self.platform_name}...")
-
         self.clear_jobs()
 
         try:
@@ -123,7 +121,7 @@ class MonsterScraper(BaseScraper):
 
         finally:
             if self.driver:
-                logger.debug("Cerrando Monster WebDriver...")
+                logger.debug("Cerrando InfoJobs WebDriver...")
                 self.driver.quit()
                 self.driver = None
 
@@ -134,7 +132,7 @@ class MonsterScraper(BaseScraper):
         """Busca ofertas para una palabra clave."""
         jobs = []
         page = 1
-        max_pages = self.config.get('scraping.max_pages_per_session', 5)
+        max_pages = self.config.get('scraping.max_pages_per_session', 0)
 
         while True:
             if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
@@ -147,37 +145,34 @@ class MonsterScraper(BaseScraper):
             try:
                 # Construir URL de búsqueda
                 params = {
-                    'q': keyword,
-                    'where': location,
+                    'keyword': keyword.replace(' ', '-'),
                     'page': str(page)
                 }
 
-                url = ScrapingUtils.build_search_url(self.JOBS_URL, params)
-                logger.debug(f"Navegando a: {url}")
+                # InfoJobs usa URLs del tipo: /ofertas-trabajo/data-scientist.html?page=1
+                search_url = f"{self.BASE_URL}/ofertas-trabajo/{keyword.replace(' ', '-')}.html"
+                if page > 1:
+                    search_url += f"?page={page}"
 
-                self.driver.get(url)
+                logger.debug(f"Navegando a: {search_url}")
+
+                self.driver.get(search_url)
 
                 # Esperar a que carguen los resultados
                 try:
                     WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, "div[class*='JobCard']"))
+                        EC.presence_of_element_located((By.CSS_SELECTOR, "li[class*='offer']"))
                     )
                 except TimeoutException:
                     logger.warning("Timeout esperando resultados")
                     break
 
-                # Encontrar tarjetas de ofertas - Monster usa varios selectores posibles
-                job_cards = []
-                selectors = [
-                    "div[class*='JobCard']",
-                    "article[class*='job']",
-                    "div.card-content"
-                ]
+                # Encontrar ofertas - InfoJobs usa diferentes selectores
+                job_cards = self.driver.find_elements(By.CSS_SELECTOR, "li[class*='offer']")
 
-                for selector in selectors:
-                    job_cards = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                    if job_cards:
-                        break
+                if not job_cards:
+                    # Intentar selector alternativo
+                    job_cards = self.driver.find_elements(By.CSS_SELECTOR, "article.offer-item")
 
                 if not job_cards:
                     logger.debug("No se encontraron más ofertas")
@@ -209,15 +204,15 @@ class MonsterScraper(BaseScraper):
         return jobs
 
     def _parse_job_card(self, card) -> Optional[JobOffer]:
-        """Extrae información de una tarjeta de oferta de Monster."""
+        """Extrae información de una tarjeta de oferta de InfoJobs."""
         try:
-            # Título - probar varios selectores
+            # Título
             title = ""
             title_selectors = [
-                "h2[class*='title']",
-                "h3[class*='title']",
+                "h2.title",
+                "h3.title",
                 "a[class*='title']",
-                ".job-title"
+                ".tc_title"
             ]
 
             for selector in title_selectors:
@@ -235,8 +230,8 @@ class MonsterScraper(BaseScraper):
             # Empresa
             company = "Desconocido"
             company_selectors = [
-                "[class*='company']",
-                "[data-test-id='svx-jobcard-company-name']",
+                ".tc_company_name",
+                "a[class*='company']",
                 ".company-name"
             ]
 
@@ -252,9 +247,9 @@ class MonsterScraper(BaseScraper):
             # Ubicación
             location = ""
             location_selectors = [
-                "[class*='location']",
-                "[data-test-id='job-location']",
-                ".job-location"
+                ".tc_locality",
+                ".location",
+                "span[class*='location']"
             ]
 
             for selector in location_selectors:
@@ -279,21 +274,31 @@ class MonsterScraper(BaseScraper):
             # Descripción
             description = ""
             desc_selectors = [
-                "[class*='description']",
-                "[class*='summary']",
-                ".job-description"
+                ".tc_description",
+                ".description",
+                "div[class*='description']"
             ]
 
             for selector in desc_selectors:
                 try:
                     desc_elem = card.find_element(By.CSS_SELECTOR, selector)
-                    description = ScrapingUtils.clean_text(desc_elem.text)
-                    if description and len(description) > 20:
+                    desc_text = ScrapingUtils.clean_text(desc_elem.text)
+                    if desc_text and len(desc_text) > 20:
+                        description = desc_text
                         break
                 except NoSuchElementException:
                     continue
 
-            # Combinar título + descripción
+            # Fallback: usar texto completo
+            if not description:
+                try:
+                    card_text = ScrapingUtils.clean_text(card.text)
+                    card_text = card_text.replace(title, "").replace(company, "")
+                    if len(card_text) > 50:
+                        description = card_text
+                except Exception:
+                    pass
+
             full_text = f"{title} {description}".strip()
             description = full_text if full_text else title
 
@@ -305,7 +310,7 @@ class MonsterScraper(BaseScraper):
             elif location:
                 work_location = WorkLocation.ONSITE
 
-            # Crear oferta con lazy loading
+            # Crear oferta
             job_offer = self._create_job_offer(
                 title=title,
                 company=company,
@@ -313,12 +318,12 @@ class MonsterScraper(BaseScraper):
                 description=description,
                 location=location,
                 work_location_type=work_location,
-                technologies=[],  # Lazy loading
-                skills=[]  # Lazy loading
+                technologies=[],
+                skills=[]
             )
 
             return job_offer
 
         except Exception as e:
-            logger.warning(f"Error parseando tarjeta de Monster: {str(e)}")
+            logger.warning(f"Error parseando tarjeta de InfoJobs: {str(e)}")
             return None
