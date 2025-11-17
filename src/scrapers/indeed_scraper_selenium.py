@@ -178,7 +178,7 @@ class IndeedScraperSelenium(BaseScraper):
 
                     # ANTI-BAN: Delay entre keywords (excepto el primero)
                     if idx > 1:
-                        delay = 45  # 45 segundos entre keywords (optimizado)
+                        delay = 30  # 30 segundos entre keywords (optimizado para velocidad)
                         logger.info(f"⏰ Esperando {delay}s entre keywords (anti-ban)...")
                         time.sleep(delay)
 
@@ -190,6 +190,9 @@ class IndeedScraperSelenium(BaseScraper):
                     jobs = self._search_keyword(keyword, location)
                     self.jobs.extend(jobs)
 
+                    # Eliminar duplicados después de cada keyword
+                    self.remove_duplicates()
+
                     if self.max_jobs > 0 and len(self.jobs) >= self.max_jobs:
                         logger.info(f"Alcanzado límite de {self.max_jobs} ofertas")
                         break
@@ -197,6 +200,9 @@ class IndeedScraperSelenium(BaseScraper):
                 except Exception as e:
                     logger.error(f"Error buscando '{keyword}': {str(e)}")
                     continue
+
+            # Eliminación final de duplicados
+            self.remove_duplicates()
 
         finally:
             # Siempre cerrar el driver
@@ -267,9 +273,9 @@ class IndeedScraperSelenium(BaseScraper):
             # Usar scroll infinito para cargar TODAS las ofertas
             previous_count = 0
             scroll_attempts = 0
-            max_scroll_attempts = 15  # Máximo 15 intentos de scroll
+            max_scroll_attempts = 25  # Máximo 25 intentos de scroll (incrementado)
             no_new_offers_count = 0
-            max_no_new = 3  # Si 3 scrolls consecutivos no traen ofertas nuevas, parar
+            max_no_new = 5  # Si 5 scrolls consecutivos no traen ofertas nuevas, parar (más paciente)
 
             logger.info("Iniciando scroll infinito para cargar todas las ofertas...")
 

@@ -119,6 +119,32 @@ class BaseScraper(ABC):
         self.jobs = []
         logger.debug(f"Lista de ofertas limpiada para {self.platform_name}")
 
+    def remove_duplicates(self):
+        """
+        Elimina ofertas duplicadas basándose en URL o título+empresa.
+        Mantiene la primera ocurrencia.
+        """
+        seen_urls = set()
+        seen_titles = set()
+        unique_jobs = []
+        duplicates_count = 0
+
+        for job in self.jobs:
+            # Crear identificador único basado en URL
+            job_id = job.url if job.url else f"{job.title}_{job.company}"
+
+            if job_id not in seen_urls and job_id not in seen_titles:
+                seen_urls.add(job_id)
+                seen_titles.add(job_id)
+                unique_jobs.append(job)
+            else:
+                duplicates_count += 1
+
+        if duplicates_count > 0:
+            logger.info(f"🗑️  Eliminados {duplicates_count} duplicados. Ofertas únicas: {len(unique_jobs)}")
+
+        self.jobs = unique_jobs
+
     def _extract_technologies(self, text: str) -> List[str]:
         """
         Extrae tecnologías mencionadas en el texto usando regex para palabras completas.
