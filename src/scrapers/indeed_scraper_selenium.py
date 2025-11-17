@@ -241,20 +241,56 @@ class IndeedScraperSelenium(BaseScraper):
                 # Navegar a la página
                 self.driver.get(url)
 
-                # Esperar a que carguen los resultados
-                try:
-                    WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.CLASS_NAME, "job_seen_beacon"))
-                    )
-                except TimeoutException:
-                    logger.warning("Timeout esperando resultados de búsqueda")
-                    break
+                # Esperar a que carguen los resultados - probar múltiples selectores
+                wait_success = False
+                selectors_to_try = [
+                    (By.CLASS_NAME, "job_seen_beacon"),
+                    (By.CSS_SELECTOR, "div.job_seen_beacon"),
+                    (By.CSS_SELECTOR, "div[class*='jobCard']"),
+                    (By.CSS_SELECTOR, "div[data-jk]"),
+                    (By.CSS_SELECTOR, "td.resultContent"),
+                    (By.CSS_SELECTOR, "div[class*='result']"),
+                ]
+
+                for selector_type, selector_value in selectors_to_try:
+                    try:
+                        WebDriverWait(self.driver, 5).until(
+                            EC.presence_of_element_located((selector_type, selector_value))
+                        )
+                        wait_success = True
+                        logger.debug(f"Encontrados resultados con selector: {selector_value}")
+                        break
+                    except TimeoutException:
+                        continue
+
+                if not wait_success:
+                    logger.warning("No se pudieron encontrar resultados con ningún selector")
+                    # No hacer break inmediatamente, intentar buscar de todos modos
+                    time.sleep(2)
 
                 # Scroll aleatorio para parecer más humano
                 self._random_scroll()
 
-                # Encontrar ofertas en la página
-                job_cards = self.driver.find_elements(By.CLASS_NAME, "job_seen_beacon")
+                # Encontrar ofertas en la página - probar múltiples selectores
+                job_cards = []
+                card_selectors = [
+                    (By.CLASS_NAME, "job_seen_beacon"),
+                    (By.CSS_SELECTOR, "div.job_seen_beacon"),
+                    (By.CSS_SELECTOR, "div[class*='jobCard']"),
+                    (By.CSS_SELECTOR, "div[data-jk]"),
+                    (By.CSS_SELECTOR, "td.resultContent"),
+                    (By.CSS_SELECTOR, "div[class*='result']"),
+                    (By.CSS_SELECTOR, "li[class*='result']"),
+                ]
+
+                for selector_type, selector_value in card_selectors:
+                    try:
+                        job_cards = self.driver.find_elements(selector_type, selector_value)
+                        if job_cards:
+                            logger.debug(f"Encontradas {len(job_cards)} ofertas con selector: {selector_value}")
+                            break
+                    except Exception:
+                        continue
 
                 if not job_cards:
                     logger.debug("No se encontraron más ofertas")

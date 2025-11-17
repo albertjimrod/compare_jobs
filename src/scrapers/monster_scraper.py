@@ -157,27 +157,50 @@ class MonsterScraper(BaseScraper):
 
                 self.driver.get(url)
 
-                # Esperar a que carguen los resultados
-                try:
-                    WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, "div[class*='JobCard']"))
-                    )
-                except TimeoutException:
-                    logger.warning("Timeout esperando resultados")
-                    break
+                # Esperar a que carguen los resultados - múltiples selectores
+                wait_success = False
+                selectors_to_try = [
+                    (By.CSS_SELECTOR, "div[class*='JobCard']"),
+                    (By.CSS_SELECTOR, "article[class*='job']"),
+                    (By.CSS_SELECTOR, "div.card-content"),
+                    (By.CSS_SELECTOR, "div[class*='result']"),
+                    (By.CSS_SELECTOR, "article"),
+                    (By.CSS_SELECTOR, "[data-job-id]"),
+                ]
+
+                for selector_type, selector_value in selectors_to_try:
+                    try:
+                        WebDriverWait(self.driver, 5).until(
+                            EC.presence_of_element_located((selector_type, selector_value))
+                        )
+                        wait_success = True
+                        logger.debug(f"Resultados encontrados con: {selector_value}")
+                        break
+                    except TimeoutException:
+                        continue
+
+                if not wait_success:
+                    logger.warning("No se pudieron encontrar resultados con ningún selector")
+                    time.sleep(2)
 
                 # Encontrar tarjetas de ofertas - Monster usa varios selectores posibles
                 job_cards = []
-                selectors = [
-                    "div[class*='JobCard']",
-                    "article[class*='job']",
-                    "div.card-content"
+                card_selectors = [
+                    (By.CSS_SELECTOR, "div[class*='JobCard']"),
+                    (By.CSS_SELECTOR, "article[class*='job']"),
+                    (By.CSS_SELECTOR, "div.card-content"),
+                    (By.CSS_SELECTOR, "div[class*='result']"),
+                    (By.CSS_SELECTOR, "article"),
                 ]
 
-                for selector in selectors:
-                    job_cards = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                    if job_cards:
-                        break
+                for selector_type, selector_value in card_selectors:
+                    try:
+                        job_cards = self.driver.find_elements(selector_type, selector_value)
+                        if job_cards and len(job_cards) > 0:
+                            logger.debug(f"Encontradas {len(job_cards)} ofertas con: {selector_value}")
+                            break
+                    except Exception:
+                        continue
 
                 if not job_cards:
                     logger.debug("No se encontraron más ofertas")
