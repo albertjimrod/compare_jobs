@@ -158,14 +158,20 @@ class MonsterScraper(BaseScraper):
                 self.driver.get(url)
 
                 # Esperar a que la página cargue completamente
-                time.sleep(5)
+                wait_time = 8 if page > 1 else 6
+                logger.debug(f"Esperando {wait_time}s para carga de Monster página {page}...")
+                time.sleep(wait_time)
 
-                # Scroll para cargar contenido dinámico
+                # Scroll agresivo para cargar contenido dinámico
                 try:
-                    self.driver.execute_script("window.scrollTo(0, 600);")
-                    time.sleep(2)
-                except Exception:
-                    pass
+                    for i in range(3):  # Repetir scroll 3 veces
+                        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                        time.sleep(1.5)
+                        self.driver.execute_script("window.scrollTo(0, 0);")
+                        time.sleep(0.5)
+                    logger.debug("Scroll de Monster completado")
+                except Exception as e:
+                    logger.debug(f"Error en scroll: {e}")
 
                 # Buscar tarjetas de ofertas con los selectores de Monster
                 job_cards = []

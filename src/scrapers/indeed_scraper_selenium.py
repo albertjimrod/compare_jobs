@@ -210,6 +210,8 @@ class IndeedScraperSelenium(BaseScraper):
         jobs = []
         page = 0
         max_pages = self.config.get('scraping.max_pages_per_session', 5)
+        empty_pages_count = 0  # Contador de páginas vacías consecutivas
+        max_empty_pages = 3    # Permitir 3 páginas vacías antes de terminar
 
         while True:
             # Límite de ofertas
@@ -242,19 +244,20 @@ class IndeedScraperSelenium(BaseScraper):
                 self.driver.get(url)
 
                 # Esperar más tiempo en páginas posteriores (cargan más lento)
-                wait_time = 6 if page > 0 else 4
+                wait_time = 8 if page > 0 else 5
+                logger.debug(f"Esperando {wait_time}s para carga de página {page + 1}...")
                 time.sleep(wait_time)
 
-                # Scroll más agresivo para cargar contenido dinámico
+                # Scroll MUY agresivo para cargar contenido dinámico (Indeed usa lazy loading)
                 try:
-                    self.driver.execute_script("window.scrollTo(0, 800);")
-                    time.sleep(1)
-                    self.driver.execute_script("window.scrollTo(0, 1600);")
-                    time.sleep(1)
-                    self.driver.execute_script("window.scrollTo(0, 0);")
-                    time.sleep(1)
-                except Exception:
-                    pass
+                    for i in range(3):  # Repetir scroll 3 veces
+                        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                        time.sleep(1.5)
+                        self.driver.execute_script("window.scrollTo(0, 0);")
+                        time.sleep(0.5)
+                    logger.debug("Scroll completado")
+                except Exception as e:
+                    logger.debug(f"Error en scroll: {e}")
 
                 # Buscar ofertas con selectores específicos de Indeed
                 job_cards = []
@@ -281,18 +284,25 @@ class IndeedScraperSelenium(BaseScraper):
                         continue
 
                 if not job_cards:
-                    logger.warning(f"No se encontraron ofertas en página {page + 1}")
-                    # No terminar inmediatamente - puede ser un problema temporal
-                    # Solo terminar si ya encontramos ofertas antes (indica fin real)
-                    if page > 0 and len(jobs) > 0:
-                        logger.info("Fin de resultados alcanzado")
-                        break
-                    # Si es la primera página y no hay resultados, sí terminar
+                    empty_pages_count += 1
+                    logger.warning(f"No se encontraron ofertas en página {page + 1} (páginas vacías consecutivas: {empty_pages_count}/{max_empty_pages})")
+
+                    # Si es la primera página y no hay resultados, terminar
                     if page == 0:
+                        logger.error("No se encontraron ofertas en la primera página")
                         break
-                    # Para páginas intermedias, continuar a la siguiente
+
+                    # Si hemos encontrado demasiadas páginas vacías consecutivas, terminar
+                    if empty_pages_count >= max_empty_pages:
+                        logger.info(f"Terminando: {empty_pages_count} páginas vacías consecutivas (puede ser fin de resultados)")
+                        break
+
+                    # Continuar a la siguiente página (puede ser un problema temporal)
                     page += 1
                     continue
+                else:
+                    # Reiniciar contador si encontramos ofertas
+                    empty_pages_count = 0
 
                 for idx, card in enumerate(job_cards, 1):
                     try:

@@ -158,19 +158,23 @@ class InfojobsScraperSelenium(BaseScraper):
 
                 self.driver.get(search_url)
 
-                # Esperar a que la página cargue completamente (InfoJobs es lenta)
-                time.sleep(8)
+                # Esperar a que la página cargue completamente (InfoJobs es MUY lenta)
+                wait_time = 12 if page > 1 else 10
+                logger.debug(f"Esperando {wait_time}s para carga de InfoJobs página {page}...")
+                time.sleep(wait_time)
 
-                # Scroll más agresivo para cargar contenido dinámico
+                # Scroll SUPER agresivo para cargar contenido dinámico (InfoJobs lazy loading)
                 try:
-                    self.driver.execute_script("window.scrollTo(0, 800);")
-                    time.sleep(2)
-                    self.driver.execute_script("window.scrollTo(0, 1600);")
-                    time.sleep(2)
+                    for i in range(4):  # Repetir scroll 4 veces (InfoJobs es muy lenta)
+                        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                        time.sleep(2)
+                        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight / 2);")
+                        time.sleep(1)
                     self.driver.execute_script("window.scrollTo(0, 0);")
                     time.sleep(1)
-                except Exception:
-                    pass
+                    logger.debug("Scroll de InfoJobs completado")
+                except Exception as e:
+                    logger.debug(f"Error en scroll: {e}")
 
                 # Buscar ofertas con múltiples selectores de InfoJobs
                 job_cards = []

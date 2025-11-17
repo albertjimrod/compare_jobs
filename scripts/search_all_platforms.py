@@ -161,18 +161,29 @@ def main():
     # Generar visualizaciones
     logger.info("\n📈 Generando visualizaciones...")
     visualizer = DataVisualizer(config)
+    chart_paths = {}
     try:
         # IMPORTANTE: El orden es (analysis, jobs) no (jobs, analysis)
-        visualizer.create_all_visualizations(analysis, all_jobs)
+        chart_paths = visualizer.create_all_visualizations(analysis, all_jobs)
         logger.info(f"✅ Visualizaciones guardadas en: {storage.data_dir}/visualizations/")
     except Exception as e:
         logger.error(f"❌ Error generando visualizaciones: {e}")
+
+    # Generar insights simples
+    insights = []
+    if analysis.get('technologies'):
+        top_tech = list(analysis['technologies']['counts'].items())[0] if analysis['technologies']['counts'] else None
+        if top_tech:
+            insights.append(f"La tecnología más demandada es {top_tech[0]} con {top_tech[1]} menciones")
+
+    if analysis.get('total_jobs', 0) > 0:
+        insights.append(f"Se encontraron {analysis['total_jobs']} ofertas de trabajo")
 
     # Generar informe
     logger.info("\n📄 Generando informe HTML...")
     reporter = ReportGenerator(config)
     try:
-        report_path = reporter.generate_html_report(all_jobs, analysis)
+        report_path = reporter.generate_html_report(analysis, insights, chart_paths, all_jobs)
         logger.info(f"✅ Informe generado: {report_path}")
     except Exception as e:
         logger.error(f"❌ Error generando informe: {e}")
