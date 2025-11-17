@@ -1,5 +1,15 @@
 """
 Scraper para Indeed.
+
+ADVERTENCIA: Indeed tiene protección anti-scraping agresiva.
+Es posible que el scraping sea bloqueado con errores 403/429.
+
+Alternativas recomendadas:
+1. Usar la API oficial de Indeed (requiere registro)
+2. Reducir frecuencia de requests (aumentar delays)
+3. Usar otras plataformas con menos restricciones
+
+Este scraper implementa medidas anti-detección pero no garantiza éxito 100%.
 """
 
 import requests
@@ -17,9 +27,33 @@ class IndeedScraper(BaseScraper):
 
     BASE_URL = "https://es.indeed.com"
 
+    def __init__(self, config=None):
+        """Inicializa el scraper de Indeed con sesión persistente."""
+        super().__init__(config)
+        # Crear sesión persistente para mantener cookies
+        self.session = requests.Session()
+
     def _get_platform_name(self) -> str:
         """Retorna el nombre de la plataforma."""
         return "Indeed"
+
+    def _initialize_session(self):
+        """Inicializa la sesión visitando la página principal para obtener cookies."""
+        try:
+            headers = ScrapingUtils.get_headers()
+            logger.debug(f"Inicializando sesión visitando {self.BASE_URL}...")
+            response = self.session.get(
+                self.BASE_URL,
+                headers=headers,
+                timeout=self.timeout,
+                allow_redirects=True
+            )
+            if response.status_code == 200:
+                logger.debug("Sesión inicializada correctamente con cookies")
+            else:
+                logger.warning(f"Inicialización de sesión retornó código {response.status_code}")
+        except Exception as e:
+            logger.warning(f"No se pudo inicializar la sesión: {str(e)}")
 
     def scrape_jobs(
         self,
@@ -44,6 +78,10 @@ class IndeedScraper(BaseScraper):
 
         logger.info(f"Iniciando scraping de {self.platform_name}...")
         self.clear_jobs()
+
+        # Inicializar sesión con visita a página principal
+        self._initialize_session()
+        self._sleep(1)  # Pequeña pausa tras visita inicial
 
         for keyword in keywords:
             try:
@@ -104,9 +142,25 @@ class IndeedScraper(BaseScraper):
 
                 logger.debug(f"Consultando: {url}")
 
-                # Hacer request con manejo de rate limiting
-                headers = ScrapingUtils.get_headers()
-                response = requests.get(url, headers=headers, timeout=self.timeout)
+                # Preparar headers más realistas para Indeed
+                referer = self.BASE_URL if page == 0 else url
+                custom_headers = {
+                    'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+                    'sec-ch-ua-mobile': '?0',
+                    'sec-ch-ua-platform': '"Windows"',
+                }
+                headers = ScrapingUtils.get_headers(
+                    referer=referer,
+                    custom_headers=custom_headers
+                )
+
+                # Hacer request con manejo de rate limiting y sesión persistente
+                response = self.session.get(
+                    url,
+                    headers=headers,
+                    timeout=self.timeout,
+                    allow_redirects=True
+                )
 
                 # Detectar rate limiting (429 Too Many Requests)
                 if response.status_code == 429:
@@ -116,6 +170,20 @@ class IndeedScraper(BaseScraper):
                     )
                     self._sleep(extra_delay=rate_limit_delay)
                     continue
+
+                # Detectar bloqueo 403 Forbidden
+                if response.status_code == 403:
+                    logger.error(
+                        "❌ Indeed bloqueó la petición (403 Forbidden). "
+                        "Esto es común con Indeed debido a su protección anti-scraping."
+                    )
+                    logger.info(
+                        "💡 Sugerencias:\n"
+                        "   1. Esperar más tiempo entre requests (aumentar delay)\n"
+                        "   2. Usar la API oficial de Indeed: https://developer.indeed.com/\n"
+                        "   3. Probar con otras plataformas menos restrictivas (InfoJobs, etc.)"
+                    )
+                    break
 
                 response.raise_for_status()
 

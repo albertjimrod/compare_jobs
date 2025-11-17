@@ -158,6 +158,7 @@ class ScrapingUtils:
     def build_search_url(
         base_url: str,
         params: Dict[str, str],
+        add_page_param: bool = False,
         page: int = 1
     ) -> str:
         """
@@ -166,14 +167,18 @@ class ScrapingUtils:
         Args:
             base_url: URL base
             params: Parámetros de búsqueda
-            page: Número de página
+            add_page_param: Si True, añade parámetro 'page' automáticamente
+            page: Número de página (solo si add_page_param=True)
 
         Returns:
             URL completa con parámetros
         """
         from urllib.parse import urlencode
 
-        params['page'] = str(page)
+        # Solo añadir parámetro page si se solicita explícitamente
+        if add_page_param:
+            params['page'] = str(page)
+
         query_string = urlencode(params)
 
         if '?' in base_url:

@@ -32,6 +32,17 @@ Job Scraper es una herramienta integral que automatiza el proceso de búsqueda y
 - 📄 **Informes HTML**: Crea informes completos y profesionales automáticamente
 - ⚙️ **Altamente Configurable**: Personaliza búsquedas, plataformas y análisis
 
+### ⚠️ Nota Importante sobre Protección Anti-Scraping
+
+Muchas plataformas modernas (especialmente **Indeed, LinkedIn, Glassdoor**) tienen **protección anti-scraping agresiva** que bloquea peticiones automatizadas con errores 403/429.
+
+**Recomendaciones:**
+- ✅ **Usar APIs oficiales** cuando estén disponibles (Indeed, InfoJobs, LinkedIn)
+- ✅ **Enfocarse en plataformas menos restrictivas** para pruebas
+- ✅ **Leer** [ANTI_SCRAPING_SOLUTIONS.md](ANTI_SCRAPING_SOLUTIONS.md) para soluciones detalladas
+
+Este proyecto implementa medidas anti-detección (delays aleatorios, headers realistas, sesiones persistentes), pero **no garantiza éxito 100%** contra sitios con protección agresiva.
+
 ## 🚀 Instalación
 
 ### Requisitos Previos
