@@ -75,11 +75,33 @@ class DataAnalyzer:
             # Solo extraer si están vacías (lazy loading)
             if not job.technologies and job.description:
                 technologies = []
+                desc_lower = job.description.lower()
+
                 for category, tech_list in tech_config.items():
                     for tech in tech_list:
-                        pattern = r'\b' + re.escape(tech) + r'\b'
+                        tech_lower = tech.lower()
+
+                        # Casos especiales que no usan word boundaries
+                        special_cases = {
+                            'c++': r'c\+\+',
+                            'c#': r'c#',
+                            '.net': r'\.net',
+                            'node.js': r'node\.js',
+                            'vue.js': r'vue\.js',
+                            'react.js': r'react\.js',
+                            'd3.js': r'd3\.js'
+                        }
+
+                        # Si es un caso especial, usar patrón especial
+                        if tech_lower in special_cases:
+                            pattern = special_cases[tech_lower]
+                        else:
+                            # Para tecnologías normales, usar word boundaries
+                            pattern = r'\b' + re.escape(tech) + r'\b'
+
                         if re.search(pattern, job.description, re.IGNORECASE):
                             technologies.append(tech)
+
                 job.technologies = list(set(technologies))
 
                 if job.technologies:
