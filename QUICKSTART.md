@@ -2,11 +2,23 @@
 
 Esta guía te ayudará a poner en marcha el Job Scraper en menos de 5 minutos.
 
-## 1️⃣ Clonar el Repositorio
+## ⚠️ ANTES DE EMPEZAR
+
+**El código está en la rama:** `claude/job-scraper-data-science-01AoTTB6fVS9wcV3WMuFkxa6`
+
+**Ver:** [INSTALACION.md](INSTALACION.md) para detalles completos
+
+## 1️⃣ Clonar el Repositorio (Rama Correcta)
 
 ```bash
-git clone https://github.com/albertjimrod/compare_jobs.git
+# Opción 1: Clonar directamente la rama con el código
+git clone -b claude/job-scraper-data-science-01AoTTB6fVS9wcV3WMuFkxa6 \
+  https://github.com/albertjimrod/compare_jobs.git
 cd compare_jobs
+
+# Opción 2: Si ya clonaste, cambia de rama
+cd compare_jobs
+git checkout claude/job-scraper-data-science-01AoTTB6fVS9wcV3WMuFkxa6
 ```
 
 ## 2️⃣ Verificar la Instalación

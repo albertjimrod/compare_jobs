@@ -2,6 +2,23 @@
 
 Sistema automatizado para recopilar, analizar y visualizar ofertas laborales de ciencia de datos desde múltiples plataformas de empleo.
 
+## ⚠️ IMPORTANTE: Cómo Acceder al Código
+
+**El código completo está en la rama:** `claude/job-scraper-data-science-01AoTTB6fVS9wcV3WMuFkxa6`
+
+```bash
+# Clonar la rama correcta directamente:
+git clone -b claude/job-scraper-data-science-01AoTTB6fVS9wcV3WMuFkxa6 \
+  https://github.com/albertjimrod/compare_jobs.git
+
+# O si ya clonaste, cambia de rama:
+git checkout claude/job-scraper-data-science-01AoTTB6fVS9wcV3WMuFkxa6
+```
+
+📖 **Ver instrucciones detalladas en:** [INSTALACION.md](INSTALACION.md)
+
+---
+
 ## 📋 Descripción
 
 Job Scraper es una herramienta integral que automatiza el proceso de búsqueda y análisis de ofertas de trabajo en el campo de la ciencia de datos. Recopila ofertas de hasta 19 plataformas diferentes, analiza las tecnologías y habilidades más demandadas, y genera informes visuales completos.
