@@ -282,7 +282,8 @@ class IndeedScraper(BaseScraper):
             elif location:
                 work_location = WorkLocation.ONSITE
 
-            # Crear oferta
+            # Crear oferta SIN extracción de tecnologías (se hará después en análisis)
+            # Esto acelera el scraping dramáticamente
             job_offer = self._create_job_offer(
                 title=title,
                 company=company,
@@ -291,6 +292,8 @@ class IndeedScraper(BaseScraper):
                 location=location,
                 work_location_type=work_location,
                 job_id=job_id,
+                technologies=[],  # Lazy loading - se extraerá en análisis
+                skills=[],  # Lazy loading - se extraerá en análisis
                 **salary_info
             )
 

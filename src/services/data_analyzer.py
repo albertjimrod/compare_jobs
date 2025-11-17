@@ -26,6 +26,50 @@ class DataAnalyzer:
         self.analysis_config = self.config.get_analysis_config()
         logger.info("DataAnalyzer inicializado")
 
+    def _preprocess_jobs(self, jobs: List[JobOffer]) -> List[JobOffer]:
+        """
+        Preprocesa las ofertas extrayendo tecnologías y skills de las descripciones.
+        Esto se hace aquí (lazy loading) para acelerar el scraping.
+
+        Args:
+            jobs: Lista de ofertas
+
+        Returns:
+            Lista de ofertas con tecnologías y skills extraídas
+        """
+        import re
+
+        logger.info("Extrayendo tecnologías y habilidades de las descripciones...")
+
+        # Obtener configuración de tecnologías y skills
+        tech_config = self.config.get('analysis.technologies', {})
+        skills_list = self.config.get('analysis.skills', [])
+
+        for idx, job in enumerate(jobs, 1):
+            # Solo extraer si están vacías (lazy loading)
+            if not job.technologies and job.description:
+                technologies = []
+                for category, tech_list in tech_config.items():
+                    for tech in tech_list:
+                        pattern = r'\b' + re.escape(tech) + r'\b'
+                        if re.search(pattern, job.description, re.IGNORECASE):
+                            technologies.append(tech)
+                job.technologies = list(set(technologies))
+
+            if not job.skills and job.description:
+                skills = []
+                for skill in skills_list:
+                    pattern = r'\b' + re.escape(skill) + r'\b'
+                    if re.search(pattern, job.description, re.IGNORECASE):
+                        skills.append(skill)
+                job.skills = list(set(skills))
+
+            if idx % 10 == 0:
+                logger.debug(f"Procesadas {idx}/{len(jobs)} ofertas...")
+
+        logger.info(f"✓ Preprocesamiento completado ({len(jobs)} ofertas)")
+        return jobs
+
     def analyze(self, jobs: List[JobOffer]) -> Dict:
         """
         Realiza un análisis completo de las ofertas.
@@ -41,6 +85,9 @@ class DataAnalyzer:
             return {}
 
         logger.info(f"Analizando {len(jobs)} ofertas de trabajo...")
+
+        # Preprocesar: extraer tecnologías y skills si no están presentes
+        jobs = self._preprocess_jobs(jobs)
 
         analysis = {
             'total_jobs': len(jobs),

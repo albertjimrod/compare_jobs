@@ -262,17 +262,20 @@ class IndeedScraperSelenium(BaseScraper):
 
                 logger.debug(f"Encontradas {len(job_cards)} ofertas en página {page + 1}")
 
-                for card in job_cards:
+                for idx, card in enumerate(job_cards, 1):
                     try:
+                        logger.debug(f"📝 Parseando oferta {idx}/{len(job_cards)}...")
                         job = self._parse_job_card(card)
                         if job:
                             jobs.append(job)
+                            logger.info(f"✓ {len(jobs)}. {job.title} - {job.company}")
 
                         if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
+                            logger.info(f"Alcanzado límite de {self.max_jobs} ofertas")
                             break
 
                     except Exception as e:
-                        logger.warning(f"Error parseando oferta: {str(e)}")
+                        logger.warning(f"Error parseando oferta {idx}: {str(e)}")
                         continue
 
                 # Siguiente página
@@ -353,7 +356,8 @@ class IndeedScraperSelenium(BaseScraper):
             elif location:
                 work_location = WorkLocation.ONSITE
 
-            # Crear oferta
+            # Crear oferta SIN extracción de tecnologías (se hará después en análisis)
+            # Esto acelera el scraping dramáticamente
             job_offer = self._create_job_offer(
                 title=title,
                 company=company,
@@ -362,6 +366,8 @@ class IndeedScraperSelenium(BaseScraper):
                 location=location,
                 work_location_type=work_location,
                 job_id=job_id,
+                technologies=[],  # Lazy loading - se extraerá en análisis
+                skills=[],  # Lazy loading - se extraerá en análisis
                 **salary_info
             )
 
