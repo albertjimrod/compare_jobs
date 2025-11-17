@@ -1,0 +1,258 @@
+# Configuración principal del Job Scraper
+
+# Configuración de scraping
+scraping:
+  # Tiempo de espera entre requests (segundos)
+  delay_between_requests: 2
+
+  # Tiempo de espera máximo para cargar páginas (segundos)
+  page_load_timeout: 30
+
+  # Número máximo de reintentos en caso de error
+  max_retries: 3
+
+  # User agents rotativos (se elegirá uno aleatorio)
+  use_random_user_agent: true
+
+  # Usar modo headless para navegadores
+  headless_mode: true
+
+  # Número máximo de ofertas a recopilar por plataforma (0 = sin límite)
+  max_jobs_per_platform: 100
+
+# Plataformas habilitadas
+platforms:
+  infojobs:
+    enabled: true
+    requires_api: false
+    priority: 1
+
+  indeed:
+    enabled: true
+    requires_api: false
+    priority: 2
+
+  linkedin:
+    enabled: false  # Requiere credenciales
+    requires_api: true
+    priority: 3
+
+  glassdoor:
+    enabled: true
+    requires_api: false
+    priority: 4
+
+  monster:
+    enabled: true
+    requires_api: false
+    priority: 5
+
+  infoempleo:
+    enabled: true
+    requires_api: false
+    priority: 6
+
+  workana:
+    enabled: true
+    requires_api: false
+    priority: 7
+
+  upwork:
+    enabled: false  # Requiere autenticación
+    requires_api: true
+    priority: 8
+
+  freelancer:
+    enabled: true
+    requires_api: false
+    priority: 9
+
+  malt:
+    enabled: true
+    requires_api: false
+    priority: 10
+
+  fiverr:
+    enabled: true
+    requires_api: false
+    priority: 11
+
+  simplyhired:
+    enabled: true
+    requires_api: false
+    priority: 12
+
+  ziprecruiter:
+    enabled: true
+    requires_api: false
+    priority: 13
+
+  careerbuilder:
+    enabled: true
+    requires_api: false
+    priority: 14
+
+  randstad:
+    enabled: true
+    requires_api: false
+    priority: 15
+
+  italenters:
+    enabled: true
+    requires_api: false
+    priority: 16
+
+  michaelpage:
+    enabled: true
+    requires_api: false
+    priority: 17
+
+  tecnoempleo:
+    enabled: true
+    requires_api: false
+    priority: 18
+
+  hays:
+    enabled: true
+    requires_api: false
+    priority: 19
+
+# Términos de búsqueda
+search_terms:
+  keywords:
+    - "data scientist"
+    - "ciencia de datos"
+    - "machine learning"
+    - "data analyst"
+    - "data engineer"
+    - "AI engineer"
+    - "inteligencia artificial"
+
+  locations:
+    - "España"
+    - "Madrid"
+    - "Barcelona"
+    - "Valencia"
+    - "Remoto"
+    - "Remote"
+
+# Almacenamiento de datos
+storage:
+  # Formato principal de almacenamiento: csv, json, sqlite
+  format: csv
+
+  # Guardar también en formato alternativo
+  save_json: true
+  save_csv: true
+  save_sqlite: true
+
+  # Rutas de almacenamiento
+  data_dir: "./data"
+  raw_dir: "./data/raw"
+  processed_dir: "./data/processed"
+  reports_dir: "./data/reports"
+  visualizations_dir: "./data/visualizations"
+
+# Análisis de datos
+analysis:
+  # Tecnologías a detectar y analizar
+  technologies:
+    languages:
+      - Python
+      - R
+      - SQL
+      - Java
+      - Scala
+      - Julia
+
+    frameworks:
+      - TensorFlow
+      - PyTorch
+      - Scikit-learn
+      - Keras
+      - Spark
+      - Hadoop
+      - pandas
+      - NumPy
+
+    databases:
+      - PostgreSQL
+      - MySQL
+      - MongoDB
+      - Redis
+      - Cassandra
+      - ElasticSearch
+
+    cloud:
+      - AWS
+      - Azure
+      - GCP
+      - Google Cloud
+
+    tools:
+      - Docker
+      - Kubernetes
+      - Git
+      - Jupyter
+      - Tableau
+      - Power BI
+      - Apache Airflow
+
+  # Habilidades a detectar
+  skills:
+    - Machine Learning
+    - Deep Learning
+    - NLP
+    - Computer Vision
+    - Big Data
+    - Data Visualization
+    - Statistical Analysis
+    - ETL
+    - Data Mining
+    - A/B Testing
+
+# Visualización
+visualization:
+  # Estilos de gráficos
+  style: seaborn
+
+  # Paleta de colores
+  color_palette: husl
+
+  # DPI para gráficos
+  dpi: 300
+
+  # Formato de salida
+  format: png
+
+  # Tipos de gráficos a generar
+  charts:
+    - top_technologies
+    - top_companies
+    - salary_distribution
+    - location_distribution
+    - contract_type_distribution
+    - experience_level_distribution
+    - technology_correlation
+    - skills_wordcloud
+
+# Reportes
+reports:
+  # Formato del reporte: html, pdf, markdown
+  format: html
+
+  # Incluir gráficos en el reporte
+  include_charts: true
+
+  # Incluir estadísticas detalladas
+  detailed_stats: true
+
+  # Generar resumen ejecutivo
+  executive_summary: true
+
+# Logging
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_to_file: true
+  log_file: "./data/job_scraper.log"
+  log_format: "{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"

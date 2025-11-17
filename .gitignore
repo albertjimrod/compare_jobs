@@ -49,17 +49,19 @@ coverage.xml
 *.cover
 
 # Configuration
-config/config.yaml
 config/local.yaml
 .env
 .env.local
 
-# Data
-data/local/
-data/private/
-*.csv
-*.db
-*.sqlite
+# Data - ignorar archivos generados pero mantener estructura
+data/raw/*.csv
+data/raw/*.json
+data/processed/*
+data/reports/*
+data/visualizations/*
+data/*.db
+data/*.sqlite
+!data/*/.gitkeep
 
 # Logs
 *.log

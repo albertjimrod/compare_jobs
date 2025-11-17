@@ -66,6 +66,21 @@ cp .env.example .env
 # nano .env
 ```
 
+### Verificar Instalación
+
+Después de clonar el repositorio, puedes verificar que todo esté correcto:
+
+```bash
+# Verificar que todos los archivos necesarios estén presentes
+python scripts/verify_installation.py
+```
+
+Este script verificará:
+- Versión de Python
+- Archivos requeridos
+- Estructura de directorios
+- Dependencias instaladas
+
 ## 📖 Uso
 
 ### Uso Básico
