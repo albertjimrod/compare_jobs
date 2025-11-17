@@ -178,7 +178,7 @@ class IndeedScraperSelenium(BaseScraper):
 
                     # ANTI-BAN: Delay entre keywords (excepto el primero)
                     if idx > 1:
-                        delay = 90  # 90 segundos entre keywords
+                        delay = 45  # 45 segundos entre keywords (optimizado)
                         logger.info(f"⏰ Esperando {delay}s entre keywords (anti-ban)...")
                         time.sleep(delay)
 

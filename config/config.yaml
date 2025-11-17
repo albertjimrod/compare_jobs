@@ -129,20 +129,14 @@ platforms:
 # Términos de búsqueda
 search_terms:
   keywords:
-    - "data scientist"
-    - "ciencia de datos"
-    - "machine learning"
-    - "data analyst"
-    - "data engineer"
-    - "AI engineer"
-    - "inteligencia artificial"
+    # Keywords optimizados: solo 3 términos amplios y efectivos
+    # Esto evita bloqueos anti-bot y encuentra más ofertas variadas
+    - "data scientist"      # Amplio: incluye ML, AI, Analytics
+    - "data engineer"       # Infraestructura de datos
+    - "machine learning"    # IA y ML específico
 
   locations:
     - "España"
-    - "Madrid"
-    - "Barcelona"
-    - "Valencia"
-    - "Remoto"
     - "Remote"
 
 # Almacenamiento de datos
