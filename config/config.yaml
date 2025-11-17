@@ -3,7 +3,8 @@
 # Configuración de scraping
 scraping:
   # Tiempo de espera entre requests (segundos)
-  delay_between_requests: 2
+  # IMPORTANTE: Aumentado para evitar baneos
+  delay_between_requests: 3
 
   # Tiempo de espera máximo para cargar páginas (segundos)
   page_load_timeout: 30
@@ -18,7 +19,14 @@ scraping:
   headless_mode: true
 
   # Número máximo de ofertas a recopilar por plataforma (0 = sin límite)
-  max_jobs_per_platform: 100
+  # IMPORTANTE: Limitado para evitar ser detectado como bot
+  max_jobs_per_platform: 50
+
+  # Delay adicional después de recibir error 429 (Too Many Requests)
+  rate_limit_delay: 60
+
+  # Máximo de páginas a scrapear por sesión
+  max_pages_per_session: 5
 
 # Plataformas habilitadas
 platforms:
@@ -164,6 +172,12 @@ analysis:
       - Java
       - Scala
       - Julia
+      - JavaScript
+      - C++
+      - Go
+      - Rust
+      - MATLAB
+      - SAS
 
     frameworks:
       - TensorFlow
@@ -174,6 +188,21 @@ analysis:
       - Hadoop
       - pandas
       - NumPy
+      - scikit-learn
+      - XGBoost
+      - LightGBM
+      - CatBoost
+      - FastAPI
+      - Django
+      - Flask
+      - Apache Spark
+      - PySpark
+      - Dask
+      - Ray
+      - MLflow
+      - Kubeflow
+      - H2O
+      - Rapids
 
     databases:
       - PostgreSQL
@@ -182,12 +211,33 @@ analysis:
       - Redis
       - Cassandra
       - ElasticSearch
+      - Elasticsearch
+      - DynamoDB
+      - Oracle
+      - SQL Server
+      - SQLite
+      - Neo4j
+      - Snowflake
+      - BigQuery
+      - Redshift
+      - ClickHouse
+      - Apache Hive
+      - Apache HBase
+      - Couchbase
+      - MariaDB
 
     cloud:
       - AWS
       - Azure
       - GCP
       - Google Cloud
+      - Amazon Web Services
+      - Microsoft Azure
+      - DigitalOcean
+      - Heroku
+      - IBM Cloud
+      - Oracle Cloud
+      - Alibaba Cloud
 
     tools:
       - Docker
@@ -197,12 +247,43 @@ analysis:
       - Tableau
       - Power BI
       - Apache Airflow
+      - Airflow
+      - GitLab
+      - GitHub
+      - Jenkins
+      - CircleCI
+      - Travis CI
+      - Ansible
+      - Terraform
+      - Looker
+      - Metabase
+      - Grafana
+      - Prometheus
+      - Databricks
+      - Apache Kafka
+      - RabbitMQ
+      - Celery
+      - Luigi
+      - Prefect
+      - Dagster
+      - dbt
+      - Great Expectations
+      - Weights & Biases
+      - TensorBoard
+      - Streamlit
+      - Plotly
+      - Dash
+      - Bokeh
+      - Seaborn
+      - Matplotlib
+      - ggplot
 
   # Habilidades a detectar
   skills:
     - Machine Learning
     - Deep Learning
     - NLP
+    - Natural Language Processing
     - Computer Vision
     - Big Data
     - Data Visualization
@@ -210,6 +291,74 @@ analysis:
     - ETL
     - Data Mining
     - A/B Testing
+    - Data Engineering
+    - Data Warehousing
+    - Data Pipeline
+    - Feature Engineering
+    - Model Deployment
+    - MLOps
+    - DevOps
+    - CI/CD
+    - Time Series
+    - Forecasting
+    - Recommendation Systems
+    - Reinforcement Learning
+    - Transfer Learning
+    - Neural Networks
+    - Regression
+    - Classification
+    - Clustering
+    - Dimensionality Reduction
+    - Ensemble Methods
+    - Random Forest
+    - Gradient Boosting
+    - SVM
+    - Decision Trees
+    - Logistic Regression
+    - Linear Regression
+    - Bayesian Methods
+    - Hypothesis Testing
+    - Experimental Design
+    - Causal Inference
+    - Data Storytelling
+    - Business Intelligence
+    - Analytics
+    - Predictive Analytics
+    - Prescriptive Analytics
+    - Descriptive Analytics
+    - Real-time Processing
+    - Batch Processing
+    - Stream Processing
+    - API Development
+    - Web Scraping
+    - Data Collection
+    - Data Cleaning
+    - Data Wrangling
+    - Exploratory Data Analysis
+    - EDA
+    - Model Evaluation
+    - Cross-Validation
+    - Hyperparameter Tuning
+    - AutoML
+    - Distributed Computing
+    - Parallel Processing
+    - Optimization
+    - Graph Analytics
+    - Network Analysis
+    - Anomaly Detection
+    - Fraud Detection
+    - Sentiment Analysis
+    - Text Mining
+    - Image Processing
+    - Object Detection
+    - Segmentation
+    - Generative AI
+    - LLM
+    - Large Language Models
+    - GPT
+    - BERT
+    - Transformers
+    - Attention Mechanisms
 
 # Visualización
 visualization:

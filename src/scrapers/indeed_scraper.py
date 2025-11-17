@@ -75,9 +75,18 @@ class IndeedScraper(BaseScraper):
         """
         jobs = []
         page = 0
+        max_pages = self.config.get('scraping.max_pages_per_session', 5)
 
         while True:
+            # Límite de ofertas
             if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
+                break
+
+            # Límite de páginas por sesión (anti-ban)
+            if page >= max_pages:
+                logger.info(
+                    f"Alcanzado límite de {max_pages} páginas por sesión (anti-ban)"
+                )
                 break
 
             try:
@@ -95,9 +104,19 @@ class IndeedScraper(BaseScraper):
 
                 logger.debug(f"Consultando: {url}")
 
-                # Hacer request
+                # Hacer request con manejo de rate limiting
                 headers = ScrapingUtils.get_headers()
                 response = requests.get(url, headers=headers, timeout=self.timeout)
+
+                # Detectar rate limiting (429 Too Many Requests)
+                if response.status_code == 429:
+                    rate_limit_delay = self.config.get('scraping.rate_limit_delay', 60)
+                    logger.warning(
+                        f"Rate limit detectado (429). Esperando {rate_limit_delay} segundos..."
+                    )
+                    self._sleep(extra_delay=rate_limit_delay)
+                    continue
+
                 response.raise_for_status()
 
                 # Parsear HTML

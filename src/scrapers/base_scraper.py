@@ -58,9 +58,18 @@ class BaseScraper(ABC):
         """
         pass
 
-    def _sleep(self):
-        """Espera un tiempo aleatorio entre requests."""
-        sleep_time = self.delay + random.uniform(0, 1)
+    def _sleep(self, extra_delay: float = 0):
+        """
+        Espera un tiempo aleatorio entre requests con jitter para evitar detección.
+
+        Args:
+            extra_delay: Delay adicional en segundos (útil después de errores)
+        """
+        # Delay base + variación aleatoria (20-50%) + extra delay
+        base_delay = self.delay + extra_delay
+        jitter = base_delay * random.uniform(0.2, 0.5)
+        sleep_time = base_delay + jitter
+
         logger.debug(f"Esperando {sleep_time:.2f} segundos...")
         time.sleep(sleep_time)
 
@@ -112,7 +121,8 @@ class BaseScraper(ABC):
 
     def _extract_technologies(self, text: str) -> List[str]:
         """
-        Extrae tecnologías mencionadas en el texto.
+        Extrae tecnologías mencionadas en el texto usando regex para palabras completas.
+        Mejora la detección usando word boundaries para evitar falsos positivos.
 
         Args:
             text: Texto donde buscar tecnologías
@@ -123,7 +133,8 @@ class BaseScraper(ABC):
         if not text:
             return []
 
-        text_lower = text.lower()
+        import re
+
         technologies = []
 
         # Obtener tecnologías de la configuración
@@ -131,14 +142,20 @@ class BaseScraper(ABC):
 
         for category, tech_list in tech_config.items():
             for tech in tech_list:
-                if tech.lower() in text_lower:
+                # Crear patrón regex para buscar palabra completa (case-insensitive)
+                # \b = word boundary para evitar coincidencias parciales
+                # Por ejemplo, buscar "SQL" no coincidirá con "NoSQL"
+                pattern = r'\b' + re.escape(tech) + r'\b'
+
+                if re.search(pattern, text, re.IGNORECASE):
                     technologies.append(tech)
 
         return list(set(technologies))  # Eliminar duplicados
 
     def _extract_skills(self, text: str) -> List[str]:
         """
-        Extrae habilidades mencionadas en el texto.
+        Extrae habilidades mencionadas en el texto usando regex.
+        Mejora la detección usando word boundaries.
 
         Args:
             text: Texto donde buscar habilidades
@@ -149,14 +166,19 @@ class BaseScraper(ABC):
         if not text:
             return []
 
-        text_lower = text.lower()
+        import re
+
         skills = []
 
         # Obtener habilidades de la configuración
         skill_list = self.config.get('analysis.skills', [])
 
         for skill in skill_list:
-            if skill.lower() in text_lower:
+            # Buscar palabra completa (case-insensitive)
+            # Permite guiones en habilidades como "Machine Learning"
+            pattern = r'\b' + re.escape(skill) + r'\b'
+
+            if re.search(pattern, text, re.IGNORECASE):
                 skills.append(skill)
 
         return list(set(skills))  # Eliminar duplicados
