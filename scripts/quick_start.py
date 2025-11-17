@@ -82,6 +82,21 @@ def main():
 
     logger.info("=== JOB SCRAPER - EJEMPLO DE USO ===\n")
 
+    # Advertencia sobre Indeed
+    print("\n" + "="*70)
+    print("⚠️  ADVERTENCIA: PROTECCIÓN ANTI-SCRAPING")
+    print("="*70)
+    print("\nIndeed tiene protección anti-scraping MUY AGRESIVA.")
+    print("Es muy probable que este ejemplo falle con error 403 Forbidden.")
+    print("\n📖 Para soluciones y alternativas, lee:")
+    print("   → ANTI_SCRAPING_SOLUTIONS.md")
+    print("\n💡 Opciones recomendadas:")
+    print("   1. Usar API oficial de Indeed (https://developer.indeed.com/)")
+    print("   2. Probar con plataformas menos restrictivas")
+    print("   3. Implementar Selenium para navegación real")
+    print("\nℹ️  Este ejemplo continúa con Indeed para demostración...")
+    print("="*70 + "\n")
+
     # 1. Cargar configuración
     logger.info("1. Cargando configuración...")
     config = ConfigLoader()
@@ -105,6 +120,22 @@ def main():
 
     if not jobs:
         logger.warning("No se encontraron ofertas")
+        print("\n" + "="*70)
+        print("❌ NO SE PUDIERON OBTENER OFERTAS")
+        print("="*70)
+        print("\nProbablemente Indeed bloqueó la petición (error 403).")
+        print("\n🔧 Soluciones:")
+        print("\n1. USAR OTRAS PLATAFORMAS (menos restrictivas):")
+        print("   python -m src.main --platforms infojobs tecnoempleo")
+        print("\n2. USAR API OFICIAL DE INDEED:")
+        print("   - Registrarse en: https://developer.indeed.com/")
+        print("   - Obtener API key")
+        print("   - Implementar cliente API (ver docs)")
+        print("\n3. USAR DATOS DE EJEMPLO (para probar el análisis):")
+        print("   python -m src.main --skip-scraping --load-from data/ejemplo.csv")
+        print("\n4. LEER DOCUMENTACIÓN COMPLETA:")
+        print("   cat ANTI_SCRAPING_SOLUTIONS.md")
+        print("\n" + "="*70 + "\n")
         return
 
     # Mostrar algunas ofertas
