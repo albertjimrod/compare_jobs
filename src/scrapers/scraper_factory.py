@@ -8,6 +8,15 @@ from loguru import logger
 from .base_scraper import BaseScraper
 from .indeed_scraper import IndeedScraper
 from .infojobs_scraper import InfojobsScraper
+
+# Importar scraper de Selenium si está disponible
+try:
+    from .indeed_scraper_selenium import IndeedScraperSelenium
+    SELENIUM_AVAILABLE = True
+except ImportError:
+    SELENIUM_AVAILABLE = False
+    logger.debug("Selenium scraper no disponible")
+
 from ..utils.config_loader import ConfigLoader
 
 
@@ -15,8 +24,11 @@ class ScraperFactory:
     """Factory para crear instancias de scrapers."""
 
     # Mapeo de plataformas a clases de scrapers
+    # Se usa Selenium por defecto si está disponible
     _SCRAPERS: Dict[str, Type[BaseScraper]] = {
-        'indeed': IndeedScraper,
+        'indeed': IndeedScraperSelenium if SELENIUM_AVAILABLE else IndeedScraper,
+        'indeed-requests': IndeedScraper,  # Versión requests (menos confiable)
+        'indeed-selenium': IndeedScraperSelenium if SELENIUM_AVAILABLE else None,
         'infojobs': InfojobsScraper,
         # Más scrapers se pueden agregar aquí
     }
@@ -46,6 +58,15 @@ class ScraperFactory:
             return None
 
         scraper_class = ScraperFactory._SCRAPERS[platform_lower]
+
+        # Verificar si el scraper está disponible (puede ser None si Selenium no está instalado)
+        if scraper_class is None:
+            logger.error(
+                f"Scraper '{platform}' requiere dependencias adicionales. "
+                "Instala Selenium con: pip install selenium webdriver-manager"
+            )
+            return None
+
         return scraper_class(config)
 
     @staticmethod

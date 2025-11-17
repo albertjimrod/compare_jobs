@@ -187,7 +187,8 @@ def run_visualization(
 def run_reporting(
     analysis: dict,
     chart_paths: dict,
-    config: ConfigLoader
+    config: ConfigLoader,
+    jobs: list = None
 ) -> Path:
     """
     Genera informe final.
@@ -196,6 +197,7 @@ def run_reporting(
         analysis: Resultados del análisis
         chart_paths: Rutas de gráficos
         config: Configuración del sistema
+        jobs: Lista de ofertas de trabajo
 
     Returns:
         Ruta del informe generado
@@ -209,7 +211,7 @@ def run_reporting(
     insights = analyzer.get_insights(analysis)
 
     # Generar informe HTML
-    report_path = reporter.generate_html_report(analysis, insights, chart_paths)
+    report_path = reporter.generate_html_report(analysis, insights, chart_paths, jobs)
 
     # Generar también Markdown si está configurado
     if config.get('reports.format') == 'markdown':
@@ -341,7 +343,7 @@ def main():
 
         # Informe
         if not args.no_report:
-            report_path = run_reporting(analysis, chart_paths, config)
+            report_path = run_reporting(analysis, chart_paths, config, jobs)
             logger.info(f"\n✅ Proceso completado exitosamente")
             logger.info(f"📄 Informe disponible en: {report_path}")
         else:

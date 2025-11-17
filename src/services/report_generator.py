@@ -440,6 +440,45 @@ class ReportGenerator:
         </div>
         {% endif %}
 
+        {% if jobs %}
+        <div class="section">
+            <h2>📋 Ofertas de Trabajo Recopiladas</h2>
+            <p>Listado completo de las {{ jobs|length }} ofertas de trabajo encontradas:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Título</th>
+                        <th>Empresa</th>
+                        <th>Ubicación</th>
+                        <th>Plataforma</th>
+                        <th>Enlace</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in jobs %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ job.title }}</strong></td>
+                        <td>{{ job.company }}</td>
+                        <td>{{ job.location if job.location else 'N/A' }}</td>
+                        <td>{{ job.platform }}</td>
+                        <td>
+                            {% if job.url %}
+                            <a href="{{ job.url }}" target="_blank" style="color: #3498db; text-decoration: none; font-weight: bold;">
+                                🔗 Ver Oferta
+                            </a>
+                            {% else %}
+                            <span style="color: #95a5a6;">No disponible</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
         <div class="footer">
             <p>Informe generado automáticamente por Job Scraper</p>
             <p>© {{ current_year }} - Análisis de Mercado Laboral</p>
@@ -472,7 +511,8 @@ class ReportGenerator:
         self,
         analysis: Dict,
         insights: List[str],
-        chart_paths: Dict[str, Path]
+        chart_paths: Dict[str, Path],
+        jobs: Optional[List] = None
     ) -> Path:
         """
         Genera un informe HTML completo.
@@ -481,6 +521,7 @@ class ReportGenerator:
             analysis: Diccionario con resultados del análisis
             insights: Lista de insights generados
             chart_paths: Diccionario con rutas a gráficos generados
+            jobs: Lista opcional de ofertas de trabajo (JobOffer objects)
 
         Returns:
             Ruta del archivo HTML generado
@@ -522,7 +563,8 @@ class ReportGenerator:
             'charts': {
                 key: str(path.relative_to(self.output_dir.parent))
                 for key, path in chart_paths.items()
-            }
+            },
+            'jobs': jobs if jobs else []
         }
 
         # Filtros personalizados para Jinja2

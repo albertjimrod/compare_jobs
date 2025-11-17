@@ -180,7 +180,7 @@ def main():
     # 7. Generar informe
     logger.info("\n7. Generando informe HTML...")
     reporter = ReportGenerator(config)
-    report_path = reporter.generate_html_report(analysis, insights, chart_paths)
+    report_path = reporter.generate_html_report(analysis, insights, chart_paths, jobs)
 
     logger.info(f"\n✅ ¡Proceso completado!")
     logger.info(f"📄 Informe disponible en: {report_path}")
