@@ -8,6 +8,13 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 
+try:
+    from tqdm import tqdm
+    TQDM_AVAILABLE = True
+except ImportError:
+    TQDM_AVAILABLE = False
+    logger.debug("tqdm no disponible - sin barra de progreso")
+
 from ..models.job_offer import JobOffer
 from ..utils.config_loader import ConfigLoader
 
@@ -39,13 +46,32 @@ class DataAnalyzer:
         """
         import re
 
-        logger.info("Extrayendo tecnologías y habilidades de las descripciones...")
+        logger.info(f"📊 Extrayendo tecnologías y habilidades de {len(jobs)} ofertas...")
 
         # Obtener configuración de tecnologías y skills
         tech_config = self.config.get('analysis.technologies', {})
         skills_list = self.config.get('analysis.skills', [])
 
-        for idx, job in enumerate(jobs, 1):
+        # Contar cuántas tecnologías y skills tenemos configuradas
+        total_techs = sum(len(techs) for techs in tech_config.values())
+        total_skills = len(skills_list)
+        logger.debug(f"Buscando {total_techs} tecnologías y {total_skills} habilidades")
+
+        # Estadísticas
+        jobs_with_desc = sum(1 for j in jobs if j.description)
+        jobs_with_techs = 0
+        jobs_with_skills = 0
+        total_techs_found = 0
+        total_skills_found = 0
+
+        # Usar tqdm si está disponible, sino mostrar progreso cada 10%
+        iterator = tqdm(jobs, desc="Procesando ofertas", unit="oferta") if TQDM_AVAILABLE else jobs
+
+        for idx, job in enumerate(iterator, 1):
+            # DEBUG: Mostrar primera descripción para verificar
+            if idx == 1 and job.description:
+                logger.debug(f"Ejemplo de descripción (primeros 200 chars): {job.description[:200]}...")
+
             # Solo extraer si están vacías (lazy loading)
             if not job.technologies and job.description:
                 technologies = []
@@ -56,6 +82,12 @@ class DataAnalyzer:
                             technologies.append(tech)
                 job.technologies = list(set(technologies))
 
+                if job.technologies:
+                    jobs_with_techs += 1
+                    total_techs_found += len(job.technologies)
+                    if idx <= 3:  # Log primeras 3 para debug
+                        logger.debug(f"Oferta {idx} '{job.title}': {len(job.technologies)} tecnologías → {job.technologies[:5]}")
+
             if not job.skills and job.description:
                 skills = []
                 for skill in skills_list:
@@ -64,10 +96,30 @@ class DataAnalyzer:
                         skills.append(skill)
                 job.skills = list(set(skills))
 
-            if idx % 10 == 0:
-                logger.debug(f"Procesadas {idx}/{len(jobs)} ofertas...")
+                if job.skills:
+                    jobs_with_skills += 1
+                    total_skills_found += len(job.skills)
 
-        logger.info(f"✓ Preprocesamiento completado ({len(jobs)} ofertas)")
+            # Mostrar progreso si no hay tqdm
+            if not TQDM_AVAILABLE and idx % max(1, len(jobs) // 10) == 0:
+                percent = (idx / len(jobs)) * 100
+                logger.info(f"Progreso: {percent:.0f}% ({idx}/{len(jobs)} ofertas)")
+
+        # Resumen de extracción
+        logger.info(f"✓ Preprocesamiento completado:")
+        logger.info(f"  - Ofertas procesadas: {len(jobs)}")
+        logger.info(f"  - Ofertas con descripción: {jobs_with_desc}")
+        logger.info(f"  - Ofertas con tecnologías: {jobs_with_techs} ({jobs_with_techs/len(jobs)*100:.1f}%)")
+        logger.info(f"  - Ofertas con habilidades: {jobs_with_skills} ({jobs_with_skills/len(jobs)*100:.1f}%)")
+        logger.info(f"  - Total tecnologías encontradas: {total_techs_found}")
+        logger.info(f"  - Total habilidades encontradas: {total_skills_found}")
+
+        if jobs_with_techs == 0:
+            logger.warning(
+                "⚠️  NO se encontraron tecnologías en ninguna oferta. "
+                "Verifica que las descripciones contienen texto y que config.yaml tiene tecnologías configuradas."
+            )
+
         return jobs
 
     def analyze(self, jobs: List[JobOffer]) -> Dict:

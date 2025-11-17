@@ -333,11 +333,21 @@ class IndeedScraperSelenium(BaseScraper):
                 pass
 
             # Descripción (snippet)
+            description = ""
             try:
                 desc_elem = card.find_element(By.CLASS_NAME, "job-snippet")
                 description = ScrapingUtils.clean_text(desc_elem.text)
             except NoSuchElementException:
-                description = ""
+                # Intentar con selector alternativo
+                try:
+                    desc_elem = card.find_element(By.CSS_SELECTOR, "div.job-snippet, ul.job-snippet")
+                    description = ScrapingUtils.clean_text(desc_elem.text)
+                except NoSuchElementException:
+                    pass
+
+            # Unir título + descripción para mejor extracción de tecnologías
+            full_text = f"{title} {description}"
+            description = full_text if full_text.strip() else ""
 
             # Salario (si está disponible)
             salary_info = {'salary_min': None, 'salary_max': None, 'salary_currency': 'EUR'}
