@@ -1,157 +1,364 @@
-# Compare Jobs
+# Job Scraper - Ciencia de Datos
 
-Herramienta para comparar ofertas de trabajo y facilitar la toma de decisiones en procesos de selección laboral.
+Sistema automatizado para recopilar, analizar y visualizar ofertas laborales de ciencia de datos desde múltiples plataformas de empleo.
 
 ## 📋 Descripción
 
-Este proyecto proporciona una plataforma para comparar múltiples ofertas de trabajo basándose en diferentes criterios como salario, beneficios, ubicación, cultura empresarial, oportunidades de crecimiento, y más.
+Job Scraper es una herramienta integral que automatiza el proceso de búsqueda y análisis de ofertas de trabajo en el campo de la ciencia de datos. Recopila ofertas de hasta 19 plataformas diferentes, analiza las tecnologías y habilidades más demandadas, y genera informes visuales completos.
 
-## 🏗️ Estructura del Repositorio
+### Características Principales
 
-```
-compare_jobs/
-├── README.md                 # Documentación principal del proyecto
-├── .gitignore               # Archivos y directorios a ignorar por Git
-├── LICENSE                  # Licencia del proyecto
-│
-├── src/                     # Código fuente principal
-│   ├── __init__.py
-│   ├── main.py             # Punto de entrada de la aplicación
-│   ├── models/             # Modelos de datos
-│   │   ├── __init__.py
-│   │   ├── job.py         # Modelo de oferta de trabajo
-│   │   └── comparison.py  # Modelo de comparación
-│   ├── services/           # Lógica de negocio
-│   │   ├── __init__.py
-│   │   ├── job_service.py
-│   │   └── comparison_service.py
-│   └── utils/              # Utilidades y helpers
-│       ├── __init__.py
-│       ├── validators.py
-│       └── formatters.py
-│
-├── tests/                   # Tests unitarios y de integración
-│   ├── __init__.py
-│   ├── test_models/
-│   ├── test_services/
-│   └── test_utils/
-│
-├── data/                    # Datos de ejemplo y plantillas
-│   ├── examples/           # Ejemplos de ofertas de trabajo
-│   └── templates/          # Plantillas para comparaciones
-│
-├── docs/                    # Documentación adicional
-│   ├── architecture.md     # Arquitectura del sistema
-│   ├── user_guide.md       # Guía de usuario
-│   └── api.md             # Documentación de API (si aplica)
-│
-├── scripts/                 # Scripts de utilidad
-│   ├── setup.sh           # Script de configuración inicial
-│   └── run_tests.sh       # Script para ejecutar tests
-│
-└── config/                  # Archivos de configuración
-    ├── config.yaml         # Configuración general
-    └── criteria.yaml       # Criterios de comparación predefinidos
-```
-
-## 🎯 Características Principales
-
-- **Comparación Multi-criterio**: Evalúa ofertas basándose en múltiples factores configurables
-- **Sistema de Puntuación**: Asigna pesos a diferentes criterios según tus prioridades
-- **Visualización de Resultados**: Presenta comparaciones de forma clara y comprensible
-- **Almacenamiento de Datos**: Guarda tus ofertas para futuras referencias
-- **Exportación**: Genera reportes en diferentes formatos
+- 🔍 **Scraping Multi-Plataforma**: Recopila ofertas de Indeed, InfoJobs, LinkedIn, Glassdoor, y más
+- 💾 **Almacenamiento Flexible**: Guarda datos en CSV, JSON y SQLite
+- 📊 **Análisis Avanzado**: Detecta tecnologías demandadas, empresas activas y patrones de mercado
+- 📈 **Visualizaciones**: Genera gráficos profesionales y nubes de palabras
+- 📄 **Informes HTML**: Crea informes completos y profesionales automáticamente
+- ⚙️ **Altamente Configurable**: Personaliza búsquedas, plataformas y análisis
 
 ## 🚀 Instalación
+
+### Requisitos Previos
+
+- Python 3.11 o superior
+- Conda (recomendado) o pip
+
+### Opción 1: Usar Conda (Recomendado)
 
 ```bash
 # Clonar el repositorio
 git clone https://github.com/albertjimrod/compare_jobs.git
-
-# Navegar al directorio
 cd compare_jobs
 
-# Instalar dependencias (ejemplo para Python)
-pip install -r requirements.txt
+# Crear entorno con conda
+conda env create -f environment.yml
 
-# Configurar el entorno
-cp config/config.example.yaml config/config.yaml
+# Activar el entorno
+conda activate job-scraper-env
+```
+
+### Opción 2: Usar pip
+
+```bash
+# Clonar el repositorio
+git clone https://github.com/albertjimrod/compare_jobs.git
+cd compare_jobs
+
+# Crear entorno virtual
+python -m venv venv
+
+# Activar entorno virtual
+# En Linux/Mac:
+source venv/bin/activate
+# En Windows:
+venv\Scripts\activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+```
+
+### Configuración Inicial
+
+```bash
+# Copiar archivo de ejemplo de variables de entorno
+cp .env.example .env
+
+# Editar .env si necesitas configurar credenciales (opcional)
+# nano .env
 ```
 
 ## 📖 Uso
 
-```bash
-# Ejemplo básico de uso
-python src/main.py --compare job1.json job2.json job3.json
-
-# Con criterios personalizados
-python src/main.py --compare jobs/*.json --criteria config/my_criteria.yaml
-```
-
-## 🧪 Testing
+### Uso Básico
 
 ```bash
-# Ejecutar todos los tests
-./scripts/run_tests.sh
+# Ejecutar scraping completo con configuración por defecto
+python -m src.main
 
-# O usando pytest directamente
-pytest tests/
+# Esto realizará:
+# 1. Scraping de todas las plataformas habilitadas
+# 2. Guardado de datos en CSV, JSON y SQLite
+# 3. Análisis de los datos
+# 4. Generación de visualizaciones
+# 5. Creación de informe HTML
 ```
 
-## 📂 Directorio Detallado
+### Uso Avanzado
 
-### `/src` - Código Fuente
-Contiene toda la lógica principal de la aplicación:
-- **models/**: Definiciones de las estructuras de datos
-- **services/**: Lógica de negocio y procesamiento
-- **utils/**: Funciones auxiliares y utilidades compartidas
+```bash
+# Scrapear plataformas específicas
+python -m src.main --platforms indeed infojobs
 
-### `/tests` - Pruebas
-Suite completa de tests para garantizar la calidad del código:
-- Tests unitarios para cada módulo
-- Tests de integración para flujos completos
-- Fixtures y mocks para testing
+# Buscar términos específicos
+python -m src.main --keywords "machine learning" "data engineer"
 
-### `/data` - Datos
-- **examples/**: Ejemplos de ofertas de trabajo para testing y demostración
-- **templates/**: Plantillas reutilizables para crear nuevas comparaciones
+# Buscar en ubicación específica
+python -m src.main --location "Madrid"
 
-### `/docs` - Documentación
-Documentación técnica y de usuario:
-- Guías de arquitectura
-- Manuales de usuario
-- Documentación de API
+# Cargar datos existentes desde archivo
+python -m src.main --load-from data/raw/jobs_20240115_120000.csv
 
-### `/scripts` - Scripts de Automatización
-Scripts de utilidad para desarrollo y deployment:
-- Scripts de setup y configuración
-- Scripts de testing y validación
-- Scripts de deployment
+# Analizar datos existentes sin scrapear
+python -m src.main --skip-scraping
 
-### `/config` - Configuración
-Archivos de configuración del proyecto:
-- Configuración general de la aplicación
-- Definición de criterios de comparación
-- Variables de entorno
+# Solo analizar, sin generar visualizaciones
+python -m src.main --skip-scraping --no-visualizations
 
-## 🤝 Contribución
+# Solo analizar, sin generar informe
+python -m src.main --skip-scraping --no-report
+```
 
-Las contribuciones son bienvenidas. Por favor:
+### Combinando Opciones
 
-1. Haz fork del proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+```bash
+# Buscar "data scientist" en Barcelona usando Indeed y LinkedIn
+python -m src.main \
+  --platforms indeed linkedin \
+  --keywords "data scientist" \
+  --location "Barcelona"
+
+# Analizar datos guardados y generar solo el informe
+python -m src.main \
+  --load-from data/raw/jobs_20240115_120000.csv \
+  --no-visualizations
+```
+
+## ⚙️ Configuración
+
+### Archivo config.yaml
+
+El archivo `config/config.yaml` contiene toda la configuración del sistema:
+
+```yaml
+# Habilitar/deshabilitar plataformas
+platforms:
+  indeed:
+    enabled: true
+  infojobs:
+    enabled: true
+  linkedin:
+    enabled: false  # Requiere credenciales
+
+# Términos de búsqueda
+search_terms:
+  keywords:
+    - "data scientist"
+    - "machine learning"
+    - "data engineer"
+  locations:
+    - "España"
+    - "Madrid"
+    - "Barcelona"
+
+# Límites de scraping
+scraping:
+  max_jobs_per_platform: 100
+  delay_between_requests: 2
+```
+
+### Variables de Entorno (.env)
+
+Para plataformas que requieren autenticación:
+
+```env
+# LinkedIn (opcional)
+LINKEDIN_EMAIL=tu_email@example.com
+LINKEDIN_PASSWORD=tu_password
+
+# Configuración de scraping
+MAX_JOBS_PER_PLATFORM=100
+HEADLESS_MODE=true
+LOG_LEVEL=INFO
+```
+
+## 📊 Plataformas Soportadas
+
+El sistema soporta las siguientes plataformas (en diferentes niveles de implementación):
+
+### Implementadas
+- ✅ Indeed
+- ✅ InfoJobs (con limitaciones anti-scraping)
+
+### Template Disponible
+- 📝 Glassdoor
+- 📝 Monster
+- 📝 Infoempleo
+- 📝 Workana
+- 📝 Freelancer
+- 📝 Malt
+- 📝 Fiverr
+- 📝 SimplyHired
+- 📝 ZipRecruiter
+- 📝 CareerBuilder
+- 📝 Randstad
+- 📝 iTalenters
+- 📝 MichaelPage
+- 📝 Tecnoempleo
+- 📝 Hays
+
+### Requieren API/Credenciales
+- 🔐 LinkedIn
+- 🔐 Upwork
+
+## 📂 Estructura del Proyecto
+
+```
+compare_jobs/
+├── config/
+│   └── config.yaml           # Configuración principal
+├── data/                     # Datos generados
+│   ├── raw/                  # Datos sin procesar (CSV, JSON)
+│   ├── processed/            # Datos procesados
+│   ├── reports/              # Informes HTML/MD
+│   ├── visualizations/       # Gráficos generados
+│   └── jobs.db              # Base de datos SQLite
+├── src/
+│   ├── main.py              # Punto de entrada
+│   ├── models/
+│   │   └── job_offer.py     # Modelo de datos
+│   ├── scrapers/
+│   │   ├── base_scraper.py  # Clase base
+│   │   ├── indeed_scraper.py
+│   │   ├── infojobs_scraper.py
+│   │   ├── generic_scraper.py  # Template para nuevos scrapers
+│   │   └── scraper_factory.py
+│   ├── services/
+│   │   ├── data_storage.py       # Almacenamiento
+│   │   ├── data_analyzer.py      # Análisis
+│   │   ├── data_visualizer.py    # Visualizaciones
+│   │   └── report_generator.py   # Informes
+│   └── utils/
+│       ├── config_loader.py      # Configuración
+│       └── scraping_utils.py     # Utilidades
+├── environment.yml           # Entorno Conda
+├── requirements.txt         # Dependencias pip
+└── README.md
+```
+
+## 🎨 Resultados
+
+### Datos Recopilados
+
+Cada oferta incluye:
+- Título del puesto
+- Empresa
+- Ubicación
+- Tipo de contrato
+- Modalidad (remoto/presencial/híbrido)
+- Rango salarial (si disponible)
+- Tecnologías detectadas
+- Habilidades requeridas
+- Descripción completa
+
+### Análisis Generados
+
+- Top tecnologías más demandadas
+- Empresas que más publican ofertas
+- Distribución salarial
+- Distribución geográfica
+- Tipos de contrato
+- Niveles de experiencia
+- Correlaciones entre tecnologías
+- Patrones y tendencias del mercado
+
+### Visualizaciones
+
+- Gráficos de barras de tecnologías
+- Gráficos de empresas
+- Distribución de ubicaciones
+- Nubes de palabras
+- Gráficos de correlaciones
+
+### Informe HTML
+
+Informe completo con:
+- Resumen ejecutivo
+- Estadísticas generales
+- Gráficos interactivos
+- Tablas de datos
+- Insights principales
+
+## 🔧 Desarrollo
+
+### Añadir Nuevo Scraper
+
+1. Copia `src/scrapers/generic_scraper.py`
+2. Renombra la clase y actualiza el nombre de plataforma
+3. Implementa los métodos de parsing específicos
+4. Registra en `scraper_factory.py`:
+
+```python
+from .tu_scraper import TuScraper
+ScraperFactory._SCRAPERS['tuplataforma'] = TuScraper
+```
+
+### Estructura de un Scraper
+
+```python
+class MiScraper(BaseScraper):
+    def _get_platform_name(self) -> str:
+        return "MiPlataforma"
+
+    def scrape_jobs(self, keywords, location) -> List[JobOffer]:
+        # Implementar lógica de scraping
+        pass
+```
+
+## ⚠️ Consideraciones Legales y Éticas
+
+- **Respeta los Términos de Servicio**: Muchos sitios web prohíben scraping en sus TOS
+- **Usa APIs cuando estén disponibles**: Preferible a scraping
+- **Rate Limiting**: El sistema incluye delays para no sobrecargar servidores
+- **Datos Personales**: No recopiles ni almacenes datos personales sensibles
+- **Uso Educativo/Personal**: Este proyecto es para uso educativo y personal
+
+## 🐛 Solución de Problemas
+
+### Error: "No hay scrapers disponibles"
+
+```bash
+# Verifica que las plataformas estén habilitadas en config.yaml
+# O especifica plataformas manualmente:
+python -m src.main --platforms indeed
+```
+
+### Error: "403 Forbidden"
+
+```bash
+# Algunos sitios bloquean scraping. Opciones:
+# 1. Usar su API oficial (si está disponible)
+# 2. Usar Selenium/Playwright (más lento pero más robusto)
+# 3. Configurar proxies (avanzado)
+```
+
+### No se generan visualizaciones
+
+```bash
+# Instala dependencias de visualización:
+pip install matplotlib seaborn plotly wordcloud
+
+# O reinstala el entorno:
+conda env create -f environment.yml --force
+```
 
 ## 📝 Licencia
 
 Este proyecto está bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
 
-## 👥 Autores
+## 👥 Autor
 
 - Alberto Jim Rod - [@albertjimrod](https://github.com/albertjimrod)
 
-## 🔄 Estado del Proyecto
+## 🙏 Agradecimientos
 
-Este proyecto está en desarrollo activo. La estructura documentada representa la organización propuesta para el código.
+- Beautiful Soup - Web scraping
+- Pandas - Análisis de datos
+- Matplotlib/Seaborn - Visualizaciones
+- Jinja2 - Generación de informes
+
+## 📮 Contacto y Soporte
+
+Para reportar bugs o sugerir mejoras, abre un issue en GitHub.
+
+---
+
+**Nota**: Este proyecto está en desarrollo activo. Las implementaciones de scrapers para algunas plataformas son templates que requieren personalización según la estructura actual de cada sitio web.
