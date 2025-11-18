@@ -216,7 +216,8 @@ class IndeedScraperSelenium(BaseScraper):
 
     def _search_keyword(self, keyword: str, location: str) -> List[JobOffer]:
         """
-        Busca ofertas para una palabra clave específica usando scroll infinito.
+        Busca ofertas para una palabra clave específica usando PAGINACIÓN.
+        Indeed España usa URLs con start=0, start=10, start=20, etc.
 
         Args:
             keyword: Palabra clave de búsqueda
@@ -226,80 +227,50 @@ class IndeedScraperSelenium(BaseScraper):
             Lista de ofertas encontradas
         """
         jobs = []
+        page_num = 0
+        start = 0
+        max_pages = 20  # Máximo 20 páginas (200+ ofertas)
+        no_results_count = 0
+
+        logger.info(f"📍 Buscando '{keyword}' en {location} usando paginación")
 
         try:
-            # Construir URL de búsqueda (solo página 1, usaremos scroll infinito)
-            params = {
-                'q': keyword,
-                'l': location,
-            }
+            while page_num < max_pages:
+                page_num += 1
 
-            url = ScrapingUtils.build_search_url(
-                f"{self.BASE_URL}/jobs",
-                params
-            )
+                # Construir URL con parámetro start para paginación
+                params = {
+                    'q': keyword,
+                    'l': location,
+                    'start': start,
+                }
 
-            logger.info(f"📍 Buscando '{keyword}' en {location}")
-            logger.info(f"🔗 URL: {url}")
-            self.driver.get(url)
+                url = ScrapingUtils.build_search_url(
+                    f"{self.BASE_URL}/jobs",
+                    params
+                )
 
-            # Esperar carga inicial
-            time.sleep(6)
+                logger.info(f"📄 Página {page_num} (start={start}): {url}")
+                self.driver.get(url)
 
-            # Debug: verificar título de la página
-            try:
-                page_title = self.driver.title
-                logger.debug(f"Título de página: {page_title}")
+                # Esperar carga de página
+                time.sleep(5)
 
-                # DETECTAR BLOQUEO CLOUDFLARE/CAPTCHA
-                if "momento" in page_title.lower() or "wait" in page_title.lower():
-                    logger.warning(f"⚠️  DETECTADO BLOQUEO: '{page_title}'")
-                    logger.warning("Esperando 120s para que pase el bloqueo...")
-                    time.sleep(120)
-
-                    # Recargar página
-                    logger.debug("Recargando página después del bloqueo...")
-                    self.driver.refresh()
-                    time.sleep(10)
-
-                    # Verificar de nuevo
-                    page_title = self.driver.title
-                    logger.debug(f"Nuevo título: {page_title}")
-            except:
-                pass
-
-            logger.debug("Carga inicial completada")
-
-            # Usar scroll infinito para cargar TODAS las ofertas
-            previous_count = 0
-            scroll_attempts = 0
-            max_scroll_attempts = 25  # Máximo 25 intentos de scroll (incrementado)
-            no_new_offers_count = 0
-            max_no_new = 5  # Si 5 scrolls consecutivos no traen ofertas nuevas, parar (más paciente)
-
-            logger.info("Iniciando scroll infinito para cargar todas las ofertas...")
-
-            while scroll_attempts < max_scroll_attempts:
-                scroll_attempts += 1
-
-                # Scroll hasta el final de la página
+                # Detectar bloqueos Cloudflare
                 try:
-                    last_height = self.driver.execute_script("return document.body.scrollHeight")
-                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                    time.sleep(2)  # Esperar que cargue contenido nuevo
+                    page_title = self.driver.title
+                    logger.debug(f"Título: {page_title}")
 
-                    # Scroll hacia arriba un poco y luego de nuevo abajo (activa lazy loading)
-                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight - 500);")
-                    time.sleep(1)
-                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                    time.sleep(2)
+                    if "momento" in page_title.lower() or "wait" in page_title.lower():
+                        logger.warning(f"⚠️  DETECTADO BLOQUEO: '{page_title}'")
+                        logger.warning("Esperando 120s...")
+                        time.sleep(120)
+                        self.driver.refresh()
+                        time.sleep(10)
+                except:
+                    pass
 
-                    new_height = self.driver.execute_script("return document.body.scrollHeight")
-
-                except Exception as e:
-                    logger.debug(f"Error en scroll {scroll_attempts}: {e}")
-
-                # Buscar TODAS las ofertas actualmente en la página
+                # Buscar ofertas en la página actual
                 all_cards = []
                 selector_used = None
                 selectors = [
@@ -321,54 +292,52 @@ class IndeedScraperSelenium(BaseScraper):
                         logger.debug(f"Error con selector {selector}: {e}")
                         continue
 
-                current_count = len(all_cards)
+                page_offers_count = len(all_cards)
+                logger.info(f"  ✓ Encontradas {page_offers_count} ofertas en página {page_num} [selector: {selector_used}]")
 
-                if current_count > previous_count:
-                    new_offers = current_count - previous_count
-                    logger.info(f"  Scroll {scroll_attempts}: {current_count} ofertas totales (+{new_offers} nuevas) [selector: {selector_used}]")
-                    previous_count = current_count
-                    no_new_offers_count = 0  # Reiniciar contador
-                else:
-                    no_new_offers_count += 1
-                    if current_count == 0:
-                        # DEBUG: Intentar detectar por qué no hay ofertas
-                        try:
-                            page_text = self.driver.find_element(By.TAG_NAME, "body").text[:500]
-                            logger.debug(f"  Página parece vacía. Primeros 500 chars: {page_text}")
-                        except:
-                            pass
-                    logger.debug(f"  Scroll {scroll_attempts}: Sin ofertas nuevas ({no_new_offers_count}/{max_no_new}) [total actual: {current_count}]")
+                # Si no hay ofertas, incrementar contador
+                if page_offers_count == 0:
+                    no_results_count += 1
+                    logger.warning(f"  ⚠️  Página vacía ({no_results_count}/3)")
 
-                    if no_new_offers_count >= max_no_new:
-                        logger.info(f"✓ Scroll completado: No hay más ofertas después de {max_no_new} intentos")
+                    if no_results_count >= 3:
+                        logger.info("✓ No hay más páginas con ofertas. Finalizando búsqueda.")
                         break
+                else:
+                    no_results_count = 0  # Reiniciar si encontramos ofertas
 
-                # Límite de ofertas alcanzado
-                if self.max_jobs > 0 and current_count >= self.max_jobs:
+                # Parsear ofertas de esta página
+                page_jobs_parsed = 0
+                for idx, card in enumerate(all_cards, 1):
+                    try:
+                        job = self._parse_job_card(card)
+                        if job:
+                            jobs.append(job)
+                            page_jobs_parsed += 1
+
+                            # Log progreso
+                            if page_jobs_parsed <= 3 or page_jobs_parsed % 10 == 0:
+                                logger.info(f"    {len(jobs)}. {job.title} - {job.company}")
+
+                    except Exception as e:
+                        logger.warning(f"Error parseando oferta: {str(e)}")
+                        continue
+
+                logger.info(f"  📊 Página {page_num}: {page_jobs_parsed} ofertas parseadas. Total acumulado: {len(jobs)}")
+
+                # Verificar límite de ofertas
+                if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
                     logger.info(f"✓ Alcanzado límite de {self.max_jobs} ofertas")
                     break
 
-            # Ahora parsear TODAS las ofertas encontradas
-            logger.info(f"Parseando {len(all_cards)} ofertas encontradas...")
+                # Preparar siguiente página
+                start += 10  # Indeed incrementa de 10 en 10
 
-            for idx, card in enumerate(all_cards, 1):
-                try:
-                    if idx % 10 == 0:  # Log cada 10 ofertas
-                        logger.debug(f"Parseando oferta {idx}/{len(all_cards)}...")
-
-                    job = self._parse_job_card(card)
-                    if job:
-                        jobs.append(job)
-                        if idx <= 5 or idx % 20 == 0:  # Mostrar primeras 5 y luego cada 20
-                            logger.info(f"✓ {len(jobs)}. {job.title} - {job.company}")
-
-                    if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
-                        logger.info(f"Alcanzado límite de {self.max_jobs} ofertas")
-                        break
-
-                except Exception as e:
-                    logger.warning(f"Error parseando oferta {idx}: {str(e)}")
-                    continue
+                # Delay entre páginas (anti-ban)
+                if page_num < max_pages and page_offers_count > 0:
+                    delay = 3  # 3 segundos entre páginas
+                    logger.debug(f"  ⏰ Esperando {delay}s antes de siguiente página...")
+                    time.sleep(delay)
 
         except Exception as e:
             logger.error(f"Error en búsqueda: {str(e)}")
