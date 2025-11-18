@@ -10,7 +10,7 @@ if __name__ == "__main__":
     if project_dir not in sys.path:
         sys.path.insert(0, project_dir)
 
-    from src.config.config_loader import ConfigLoader
+    from src.utils.config_loader import ConfigLoader
     from src.scrapers.indeed_scraper_selenium import IndeedScraperSelenium
 
     print("🔍 Iniciando test de Indeed con debug...")
