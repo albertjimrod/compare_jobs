@@ -29,11 +29,12 @@ try:
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.common.exceptions import TimeoutException, NoSuchElementException
     from webdriver_manager.chrome import ChromeDriverManager
+    import undetected_chromedriver as uc
     SELENIUM_AVAILABLE = True
 except ImportError:
     SELENIUM_AVAILABLE = False
     logger.warning(
-        "Selenium no está disponible. Instala con: pip install selenium webdriver-manager"
+        "Selenium no está disponible. Instala con: pip install selenium webdriver-manager undetected-chromedriver"
     )
 
 from .base_scraper import BaseScraper
@@ -61,42 +62,30 @@ class IndeedScraperSelenium(BaseScraper):
         return "Indeed (Selenium)"
 
     def _setup_driver(self):
-        """Configura y retorna un driver de Selenium con opciones anti-detección."""
-        logger.info("Configurando Selenium WebDriver...")
+        """Configura y retorna un driver usando undetected-chromedriver para evitar Cloudflare."""
+        logger.info("Configurando undetected-chromedriver (anti-Cloudflare)...")
 
-        chrome_options = Options()
+        chrome_options = uc.ChromeOptions()
 
         # Modo headless (sin interfaz gráfica) si está configurado
-        if self.config.get('scraping.headless_mode', True):
+        # NOTA: headless puede aumentar detección, mejor usar modo visible
+        headless_mode = self.config.get('scraping.headless_mode', False)
+        if headless_mode:
             chrome_options.add_argument('--headless=new')
-            logger.debug("Modo headless activado")
+            logger.debug("Modo headless activado (puede aumentar detección)")
         else:
-            logger.debug("Modo headless desactivado - se abrirá ventana del navegador")
-
-        # Opciones para evadir detección
-        chrome_options.add_argument('--disable-blink-features=AutomationControlled')
-        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        chrome_options.add_experimental_option('useAutomationExtension', False)
+            logger.debug("Modo visible activado - mejor para evitar Cloudflare")
 
         # Opciones de rendimiento
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
-        chrome_options.add_argument('--disable-gpu')
-
-        # User agent realista
-        user_agent = ScrapingUtils.get_random_user_agent()
-        chrome_options.add_argument(f'user-agent={user_agent}')
 
         # Tamaño de ventana
         chrome_options.add_argument('--window-size=1920,1080')
 
-        # Idioma
-        chrome_options.add_argument('--lang=es-ES')
-
         try:
-            # Usar webdriver-manager para gestionar el driver automáticamente
-            service = Service(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service, options=chrome_options)
+            # Usar undetected-chromedriver que evita detección de Cloudflare
+            driver = uc.Chrome(options=chrome_options, version_main=None)
 
             # Script para ocultar propiedades de webdriver
             driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
@@ -216,10 +205,9 @@ class IndeedScraperSelenium(BaseScraper):
 
     def _search_keyword(self, keyword: str, location: str) -> List[JobOffer]:
         """
-        Busca ofertas para una palabra clave usando SCROLL INFINITO.
+        Busca ofertas para una palabra clave usando PAGINACIÓN con undetected-chromedriver.
 
-        IMPORTANTE: Indeed bloquea URLs con parámetro 'start' (Cloudflare).
-        Solución: Cargar UNA VEZ sin 'start' y hacer scroll para cargar más ofertas.
+        undetected-chromedriver evita Cloudflare, permitiendo usar parámetro 'start' para paginación.
 
         Args:
             keyword: Palabra clave de búsqueda
@@ -229,125 +217,103 @@ class IndeedScraperSelenium(BaseScraper):
             Lista de ofertas encontradas
         """
         jobs = []
+        page_num = 0
+        start = 0
+        max_pages = 15  # 15 páginas × 15 ofertas = ~150 ofertas por keyword
+        no_results_count = 0
+
+        logger.info(f"📍 Buscando '{keyword}' en {location} con paginación")
 
         try:
-            # Construir URL SIN parámetro 'start' (evita Cloudflare)
-            params = {
-                'q': keyword,
-                'l': location,
-            }
+            while page_num < max_pages:
+                page_num += 1
 
-            url = ScrapingUtils.build_search_url(
-                f"{self.BASE_URL}/jobs",
-                params
-            )
+                # Construir URL con paginación (start=0, 10, 20...)
+                params = {
+                    'q': keyword,
+                    'l': location,
+                    'start': start,
+                }
 
-            logger.info(f"📍 Buscando '{keyword}' en {location}")
-            logger.info(f"🔗 URL: {url}")
-            self.driver.get(url)
+                url = ScrapingUtils.build_search_url(
+                    f"{self.BASE_URL}/jobs",
+                    params
+                )
 
-            # Esperar carga inicial
-            time.sleep(8)
+                logger.info(f"📄 Página {page_num} (start={start})")
+                logger.debug(f"   URL: {url}")
+                self.driver.get(url)
 
-            # Verificar bloqueo
-            try:
-                page_title = self.driver.title
-                logger.debug(f"Título: {page_title}")
+                # Esperar carga
+                time.sleep(6)
 
-                if "momento" in page_title.lower():
-                    logger.warning(f"⚠️  BLOQUEADO: '{page_title}'")
-                    logger.warning("Esperando 120s...")
-                    time.sleep(120)
-                    self.driver.refresh()
-                    time.sleep(10)
-            except:
-                pass
-
-            # SCROLL INFINITO para cargar TODAS las ofertas
-            logger.info("🔄 Iniciando scroll infinito...")
-
-            previous_count = 0
-            scroll_attempts = 0
-            max_scroll_attempts = 50  # Más intentos para cargar todo
-            no_new_offers_count = 0
-            max_no_new = 8  # Más paciencia antes de parar
-
-            while scroll_attempts < max_scroll_attempts:
-                scroll_attempts += 1
-
-                # Scroll agresivo hasta el final
+                # Verificar bloqueo Cloudflare
                 try:
-                    # Obtener altura actual
-                    last_height = self.driver.execute_script("return document.body.scrollHeight")
+                    page_title = self.driver.title
+                    if "momento" in page_title.lower():
+                        logger.warning(f"⚠️  Cloudflare detectado en página {page_num}")
+                        logger.warning("Esperando 30s...")
+                        time.sleep(30)
+                        self.driver.refresh()
+                        time.sleep(8)
+                except:
+                    pass
 
-                    # Scroll hasta el final
-                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                    time.sleep(3)  # Esperar que cargue
-
-                    # Scroll intermedio (activa lazy loading)
-                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight * 0.7);")
-                    time.sleep(1)
-
-                    # Scroll de nuevo al final
-                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                    time.sleep(3)
-
-                    # Verificar si la altura cambió (contenido nuevo)
-                    new_height = self.driver.execute_script("return document.body.scrollHeight")
-
-                except Exception as e:
-                    logger.debug(f"Error en scroll {scroll_attempts}: {e}")
-
-                # Contar ofertas actuales con MEJOR selector
+                # Buscar ofertas con mejor selector
                 selector = "div[class*='job_']"
                 try:
                     all_cards = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                    current_count = len(all_cards)
+                    page_offers_count = len(all_cards)
                 except Exception as e:
-                    logger.debug(f"Error contando ofertas: {e}")
-                    current_count = 0
+                    logger.debug(f"Error buscando ofertas: {e}")
+                    all_cards = []
+                    page_offers_count = 0
 
-                # Verificar progreso
-                if current_count > previous_count:
-                    new_offers = current_count - previous_count
-                    logger.info(f"  Scroll {scroll_attempts}: {current_count} ofertas (+{new_offers}) ✅")
-                    previous_count = current_count
-                    no_new_offers_count = 0
-                else:
-                    no_new_offers_count += 1
-                    logger.debug(f"  Scroll {scroll_attempts}: {current_count} ofertas (sin cambios {no_new_offers_count}/{max_no_new})")
+                logger.info(f"   ✓ {page_offers_count} ofertas en página")
 
-                    if no_new_offers_count >= max_no_new:
-                        logger.info(f"✓ Scroll completado: No hay más ofertas después de {max_no_new} intentos")
+                # Si página vacía, incrementar contador
+                if page_offers_count == 0:
+                    no_results_count += 1
+                    logger.warning(f"   ⚠️  Página vacía ({no_results_count}/3)")
+
+                    if no_results_count >= 3:
+                        logger.info("✓ Fin: 3 páginas consecutivas vacías")
                         break
+                else:
+                    no_results_count = 0  # Reiniciar
 
-                # Límite alcanzado
-                if self.max_jobs > 0 and current_count >= self.max_jobs:
-                    logger.info(f"✓ Alcanzado límite de {self.max_jobs} ofertas")
+                # Parsear ofertas de esta página
+                page_jobs_parsed = 0
+                for idx, card in enumerate(all_cards, 1):
+                    try:
+                        job = self._parse_job_card(card)
+                        if job:
+                            jobs.append(job)
+                            page_jobs_parsed += 1
+
+                            # Mostrar progreso
+                            if page_jobs_parsed <= 3 or len(jobs) % 25 == 0:
+                                logger.info(f"      {len(jobs)}. {job.title} - {job.company}")
+
+                    except Exception as e:
+                        logger.debug(f"Error parseando oferta: {str(e)}")
+                        continue
+
+                logger.info(f"   📊 Total acumulado: {len(jobs)} ofertas")
+
+                # Verificar límite
+                if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
+                    logger.info(f"✓ Límite alcanzado: {self.max_jobs} ofertas")
                     break
 
-            # Parsear TODAS las ofertas encontradas
-            logger.info(f"\n📋 Parseando {len(all_cards)} ofertas encontradas...")
+                # Siguiente página
+                start += 10  # Indeed incrementa de 10 en 10
 
-            for idx, card in enumerate(all_cards, 1):
-                try:
-                    if idx % 20 == 0:
-                        logger.debug(f"  Procesando {idx}/{len(all_cards)}...")
-
-                    job = self._parse_job_card(card)
-                    if job:
-                        jobs.append(job)
-
-                        # Mostrar progreso
-                        if idx <= 5 or idx % 30 == 0:
-                            logger.info(f"  ✓ {len(jobs)}. {job.title} - {job.company}")
-
-                    if self.max_jobs > 0 and len(jobs) >= self.max_jobs:
-                        break
-
-                except Exception as e:
-                    logger.warning(f"Error parseando oferta {idx}: {str(e)}")
-                    continue
+                # Delay entre páginas (anti-ban)
+                if page_num < max_pages and page_offers_count > 0:
+                    delay = 12  # 12 segundos entre páginas
+                    logger.debug(f"   ⏰ Esperando {delay}s antes de siguiente página...")
+                    time.sleep(delay)
 
         except Exception as e:
             logger.error(f"Error en búsqueda: {str(e)}")
