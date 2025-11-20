@@ -1,0 +1,403 @@
+# Configuración principal del Job Scraper
+
+# Configuración de scraping
+scraping:
+  # Tiempo de espera entre requests (segundos)
+  # IMPORTANTE: Aumentado para evitar baneos
+  delay_between_requests: 3
+
+  # Tiempo de espera máximo para cargar páginas (segundos)
+  page_load_timeout: 30
+
+  # Número máximo de reintentos en caso de error
+  max_retries: 3
+
+  # User agents rotativos (se elegirá uno aleatorio)
+  use_random_user_agent: true
+
+  # Usar modo headless para navegadores
+  # NOTA: headless=false (modo visible) evita mejor detección de Cloudflare
+  headless_mode: false
+
+  # Número máximo de ofertas a recopilar por plataforma (0 = sin límite)
+  # Puedes ajustar este valor. 0 = obtener todos los anuncios disponibles
+  max_jobs_per_platform: 0
+
+  # Delay adicional después de recibir error 429 (Too Many Requests)
+  rate_limit_delay: 60
+
+  # Máximo de páginas a scrapear por sesión (0 = sin límite)
+  # NOTA: 0 = obtener todas las páginas disponibles
+  max_pages_per_session: 0
+
+# Plataformas habilitadas
+platforms:
+  infojobs:
+    enabled: true
+    requires_api: false
+    priority: 1
+
+  indeed:
+    enabled: true
+    requires_api: false
+    priority: 2
+
+  linkedin:
+    enabled: false  # Requiere credenciales
+    requires_api: true
+    priority: 3
+
+  glassdoor:
+    enabled: true
+    requires_api: false
+    priority: 4
+
+  monster:
+    enabled: true
+    requires_api: false
+    priority: 5
+
+  infoempleo:
+    enabled: true
+    requires_api: false
+    priority: 6
+
+  workana:
+    enabled: true
+    requires_api: false
+    priority: 7
+
+  upwork:
+    enabled: false  # Requiere autenticación
+    requires_api: true
+    priority: 8
+
+  freelancer:
+    enabled: true
+    requires_api: false
+    priority: 9
+
+  malt:
+    enabled: true
+    requires_api: false
+    priority: 10
+
+  fiverr:
+    enabled: true
+    requires_api: false
+    priority: 11
+
+  simplyhired:
+    enabled: true
+    requires_api: false
+    priority: 12
+
+  ziprecruiter:
+    enabled: true
+    requires_api: false
+    priority: 13
+
+  careerbuilder:
+    enabled: true
+    requires_api: false
+    priority: 14
+
+  randstad:
+    enabled: true
+    requires_api: false
+    priority: 15
+
+  italenters:
+    enabled: true
+    requires_api: false
+    priority: 16
+
+  michaelpage:
+    enabled: true
+    requires_api: false
+    priority: 17
+
+  tecnoempleo:
+    enabled: true
+    requires_api: false
+    priority: 18
+
+  hays:
+    enabled: true
+    requires_api: false
+    priority: 19
+
+# Términos de búsqueda
+search_terms:
+  keywords:
+    # Keywords optimizados: solo 3 términos amplios y efectivos
+    # Esto evita bloqueos anti-bot y encuentra más ofertas variadas
+    - "data scientist"      # Amplio: incluye ML, AI, Analytics
+    - "data engineer"       # Infraestructura de datos
+    - "machine learning"    # IA y ML específico
+
+  locations:
+    - "España"
+    - "Remote"
+
+# Almacenamiento de datos
+storage:
+  # Formato principal de almacenamiento: csv, json, sqlite
+  format: csv
+
+  # Guardar también en formato alternativo
+  save_json: true
+  save_csv: true
+  save_sqlite: true
+
+  # Rutas de almacenamiento
+  data_dir: "./data"
+  raw_dir: "./data/raw"
+  processed_dir: "./data/processed"
+  reports_dir: "./data/reports"
+  visualizations_dir: "./data/visualizations"
+
+# Análisis de datos
+analysis:
+  # Tecnologías a detectar y analizar
+  technologies:
+    languages:
+      - Python
+      - R
+      - SQL
+      - Java
+      - Scala
+      - Julia
+      - JavaScript
+      - C++
+      - Go
+      - Rust
+      - MATLAB
+      - SAS
+
+    frameworks:
+      - TensorFlow
+      - PyTorch
+      - Scikit-learn
+      - Keras
+      - Spark
+      - Hadoop
+      - pandas
+      - NumPy
+      - scikit-learn
+      - XGBoost
+      - LightGBM
+      - CatBoost
+      - FastAPI
+      - Django
+      - Flask
+      - Apache Spark
+      - PySpark
+      - Dask
+      - Ray
+      - MLflow
+      - Kubeflow
+      - H2O
+      - Rapids
+
+    databases:
+      - PostgreSQL
+      - MySQL
+      - MongoDB
+      - Redis
+      - Cassandra
+      - ElasticSearch
+      - Elasticsearch
+      - DynamoDB
+      - Oracle
+      - SQL Server
+      - SQLite
+      - Neo4j
+      - Snowflake
+      - BigQuery
+      - Redshift
+      - ClickHouse
+      - Apache Hive
+      - Apache HBase
+      - Couchbase
+      - MariaDB
+
+    cloud:
+      - AWS
+      - Azure
+      - GCP
+      - Google Cloud
+      - Amazon Web Services
+      - Microsoft Azure
+      - DigitalOcean
+      - Heroku
+      - IBM Cloud
+      - Oracle Cloud
+      - Alibaba Cloud
+
+    tools:
+      - Docker
+      - Kubernetes
+      - Git
+      - Jupyter
+      - Tableau
+      - Power BI
+      - Apache Airflow
+      - Airflow
+      - GitLab
+      - GitHub
+      - Jenkins
+      - CircleCI
+      - Travis CI
+      - Ansible
+      - Terraform
+      - Looker
+      - Metabase
+      - Grafana
+      - Prometheus
+      - Databricks
+      - Apache Kafka
+      - RabbitMQ
+      - Celery
+      - Luigi
+      - Prefect
+      - Dagster
+      - dbt
+      - Great Expectations
+      - Weights & Biases
+      - TensorBoard
+      - Streamlit
+      - Plotly
+      - Dash
+      - Bokeh
+      - Seaborn
+      - Matplotlib
+      - ggplot
+
+  # Habilidades a detectar
+  skills:
+    - Machine Learning
+    - Deep Learning
+    - NLP
+    - Natural Language Processing
+    - Computer Vision
+    - Big Data
+    - Data Visualization
+    - Statistical Analysis
+    - ETL
+    - Data Mining
+    - A/B Testing
+    - Data Engineering
+    - Data Warehousing
+    - Data Pipeline
+    - Feature Engineering
+    - Model Deployment
+    - MLOps
+    - DevOps
+    - CI/CD
+    - Time Series
+    - Forecasting
+    - Recommendation Systems
+    - Reinforcement Learning
+    - Transfer Learning
+    - Neural Networks
+    - Regression
+    - Classification
+    - Clustering
+    - Dimensionality Reduction
+    - Ensemble Methods
+    - Random Forest
+    - Gradient Boosting
+    - SVM
+    - Decision Trees
+    - Logistic Regression
+    - Linear Regression
+    - Bayesian Methods
+    - Hypothesis Testing
+    - Experimental Design
+    - Causal Inference
+    - Data Storytelling
+    - Business Intelligence
+    - Analytics
+    - Predictive Analytics
+    - Prescriptive Analytics
+    - Descriptive Analytics
+    - Real-time Processing
+    - Batch Processing
+    - Stream Processing
+    - API Development
+    - Web Scraping
+    - Data Collection
+    - Data Cleaning
+    - Data Wrangling
+    - Exploratory Data Analysis
+    - EDA
+    - Model Evaluation
+    - Cross-Validation
+    - Hyperparameter Tuning
+    - AutoML
+    - Distributed Computing
+    - Parallel Processing
+    - Optimization
+    - Graph Analytics
+    - Network Analysis
+    - Anomaly Detection
+    - Fraud Detection
+    - Sentiment Analysis
+    - Text Mining
+    - Image Processing
+    - Object Detection
+    - Segmentation
+    - Generative AI
+    - LLM
+    - Large Language Models
+    - GPT
+    - BERT
+    - Transformers
+    - Attention Mechanisms
+
+# Visualización
+visualization:
+  # Estilos de gráficos
+  style: seaborn
+
+  # Paleta de colores
+  color_palette: husl
+
+  # DPI para gráficos
+  dpi: 300
+
+  # Formato de salida
+  format: png
+
+  # Tipos de gráficos a generar
+  charts:
+    - top_technologies
+    - top_companies
+    - salary_distribution
+    - location_distribution
+    - contract_type_distribution
+    - experience_level_distribution
+    - technology_correlation
+    - skills_wordcloud
+
+# Reportes
+reports:
+  # Formato del reporte: html, pdf, markdown
+  format: html
+
+  # Incluir gráficos en el reporte
+  include_charts: true
+
+  # Incluir estadísticas detalladas
+  detailed_stats: true
+
+  # Generar resumen ejecutivo
+  executive_summary: true
+
+# Logging
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_to_file: true
+  log_file: "./data/job_scraper.log"
+  log_format: "{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"

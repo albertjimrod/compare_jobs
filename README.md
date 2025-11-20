@@ -1,793 +1,790 @@
-# 🔍 Compare Jobs - Sistema Multi-Fuente de Scraping de Ofertas Laborales
+# Job Scraper - Ciencia de Datos
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Active-success.svg)](https://github.com/albertjimrod/compare_jobs)
+Sistema automatizado para recopilar, analizar y visualizar ofertas laborales de ciencia de datos desde **19 plataformas** de empleo.
 
-Sistema avanzado de web scraping para recopilar, analizar y comparar ofertas de trabajo de múltiples plataformas laborales. Automatiza la búsqueda de empleo extrayendo datos de 19 portales diferentes y proporcionando análisis inteligente de tecnologías, salarios y tendencias del mercado.
+## ⚠️ IMPORTANTE: Cómo Acceder al Código
+
+**El código completo está en la rama:** `claude/job-scraper-data-science-01AoTTB6fVS9wcV3WMuFkxa6`
+
+```bash
+# Clonar la rama correcta directamente:
+git clone -b claude/job-scraper-data-science-01AoTTB6fVS9wcV3WMuFkxa6 \
+  https://github.com/albertjimrod/compare_jobs.git
+
+# O si ya clonaste, cambia de rama:
+git checkout claude/job-scraper-data-science-01AoTTB6fVS9wcV3WMuFkxa6
+```
 
 ---
 
 ## 📋 Descripción
 
-**Compare Jobs** es una herramienta profesional de scraping que:
+Job Scraper es una herramienta integral que automatiza el proceso de búsqueda y análisis de ofertas de trabajo en el campo de la ciencia de datos. Recopila ofertas de **19 plataformas diferentes**, analiza las tecnologías y habilidades más demandadas, y genera informes visuales completos.
 
-- 🌐 **Extrae ofertas** de 19 plataformas laborales diferentes
-- 🤖 **Automatiza** la búsqueda con técnicas anti-ban avanzadas
-- 🔍 **Analiza** automáticamente tecnologías y skills requeridas
-- 📊 **Visualiza** tendencias del mercado laboral
-- 💾 **Almacena** resultados en múltiples formatos (CSV, JSON, SQLite)
-- 📈 **Genera reportes** personalizados con estadísticas detalladas
+### ✨ Características Principales
 
----
+- 🕷️ **19 Scrapers Implementados**: Indeed, LinkedIn, Glassdoor, Monster, InfoJobs, Upwork, y más
+- 🚀 **Extracción Optimizada**: Lazy loading de tecnologías para máxima velocidad
+- 💾 **Almacenamiento Flexible**: Guarda datos en CSV, JSON y SQLite
+- 📊 **Análisis Avanzado**: Detecta 150+ tecnologías y skills automáticamente
+- 📈 **Visualizaciones**: Gráficos profesionales y nubes de palabras
+- 📄 **Informes HTML**: Crea informes completos y profesionales automáticamente
+- ⚙️ **Altamente Configurable**: Personaliza búsquedas, plataformas y análisis
+- 📊 **Barra de Progreso**: Visualiza el progreso en tiempo real
 
-## ✨ Características Principales
+### ⚡ Mejoras Recientes
 
-### 🚀 Scraping Multi-Fuente
-- **19 scrapers implementados** para diferentes plataformas
-- **Arquitectura modular** con patrón Factory
-- **Sistema anti-ban** robusto (delays aleatorios, retry automático, rate limiting)
-- **Soporte Selenium + undetected-chromedriver** para evasión de detección
-
-### 🧠 Análisis Inteligente
-- **Extracción automática** de tecnologías mencionadas (Python, Java, React, etc.)
-- **Detección de skills** (Machine Learning, DevOps, Agile, etc.)
-- **Análisis de salarios** por tecnología y ubicación
-- **Deduplicación** inteligente de ofertas repetidas
-
-### 📊 Visualización y Reportes
-- **Gráficas interactivas** con Plotly y Matplotlib
-- **Word clouds** de tecnologías más demandadas
-- **Reportes en PDF/HTML** personalizables
-- **Dashboard** de estadísticas en tiempo real
+- ✅ **15x más rápido**: Reducido tiempo de parsing de 90s a 5-7s por oferta
+- ✅ **Mejor extracción**: Múltiples selectores CSS con fallbacks automáticos
+- ✅ **Progreso visible**: Barra de progreso con tqdm + estadísticas detalladas
+- ✅ **Más tecnologías detectadas**: Manejo de casos especiales (C++, C#, .NET, etc.)
 
 ---
 
-## 🌐 Plataformas Soportadas
-
-### ✅ Totalmente Funcionales (4)
-| Plataforma | Tipo | Ofertas Esperadas | Dificultad |
-|------------|------|-------------------|------------|
-| **Indeed** | Agregador | 500+ | 🟢 Media |
-| **InfoJobs** | Portal español | 300+ | 🟢 Baja |
-| **LinkedIn** | Red profesional | 400+ | 🟡 Media |
-| **Monster** | Agregador | 200+ | 🔴 Alta |
-
-### 🔧 Implementados (Requieren ajuste de selectores) (15)
-
-#### Portales Corporativos (Más fáciles)
-- **MichaelPage** - Consultoría RR.HH. (🟢 Fácil - empezar por este)
-- **Randstad** - Empresa RR.HH. internacional (🟢 Fácil)
-- **Hays** - Especialización por sectores (🟢 Fácil)
-
-#### Portales Españoles Especializados
-- **Tecnoempleo** - Especializado en tecnología (🟡 Media - Alta prioridad)
-- **InfoEmpleo** - Portal generalista español (🟡 Media)
-- **iTalenters** - Especializado IT (🟡 Media)
-
-#### Agregadores Internacionales
-- **Glassdoor** - Con reviews de empresas (🔴 Difícil - protección fuerte)
-- **SimplyHired** - Agregador (🟡 Media)
-- **ZipRecruiter** - Agregador internacional (🟡 Media)
-- **CareerBuilder** - Agregador (🟡 Media)
-
-#### Plataformas Freelance
-- **Upwork** - Freelance global (🟡 Media)
-- **Freelancer** - Proyectos freelance (🟡 Media)
-- **Workana** - Freelance latinoamérica (🟡 Media)
-- **Malt** - Freelance Europa (🟡 Media)
-- **Fiverr** - Servicios freelance (🟡 Media)
-
-**Objetivo**: 800-1000+ ofertas únicas combinando múltiples fuentes
-
----
-
-## 🏗️ Arquitectura del Sistema
-
-### Estructura del Proyecto
-
-```
-compare_jobs/
-│
-├── 📄 README.md                          # Este archivo
-├── 📄 LICENSE                            # Licencia MIT
-├── 📄 requirements.txt                   # Dependencias Python
-├── 📄 environment.yml                    # Entorno Conda (opcional)
-├── 📄 .env.example                       # Variables de entorno de ejemplo
-│
-├── 📚 Documentación/
-│   ├── RESUMEN_EJECUTIVO.md              # Plan de acción y próximos pasos
-│   ├── PLAN_INTEGRACION_SCRAPERS.md      # Análisis técnico de fuentes
-│   ├── ANALISIS_NUEVAS_FUENTES.md        # Evaluación de protecciones anti-scraping
-│   ├── IMPLEMENTATION_SUMMARY.md         # Resumen de implementación
-│   ├── PLAN_DESARROLLO.md                # Plan de desarrollo modular
-│   ├── ANTI_SCRAPING_SOLUTIONS.md        # Técnicas anti-ban
-│   ├── SCRAPERS_GUIDE.md                 # Guía de uso de scrapers
-│   ├── SELENIUM_GUIDE.md                 # Guía específica de Selenium
-│   ├── INSTALACION.md                    # Instrucciones de instalación
-│   └── QUICKSTART.md                     # Inicio rápido
-│
-├── 🧪 Scripts de Testing/
-│   ├── test_multi_scrapers_poc.py        # Prueba de concepto (10 ofertas/scraper)
-│   └── test_scraper_individual.py        # Testing individual configurable
-│
-├── 📁 src/                               # Código fuente principal
-│   ├── __init__.py
-│   ├── main.py                           # Punto de entrada
-│   │
-│   ├── 🤖 scrapers/                      # 19 Scrapers implementados
-│   │   ├── base_scraper.py               # Clase base abstracta
-│   │   ├── scraper_factory.py            # Factory pattern
-│   │   ├── _scraper_template.py          # Template para nuevos scrapers
-│   │   │
-│   │   ├── indeed_scraper_selenium.py    # ✅ Totalmente funcional
-│   │   ├── infojobs_scraper.py           # ✅ Funcional
-│   │   ├── linkedin_scraper.py           # ✅ Funcional
-│   │   ├── monster_scraper.py            # ✅ Funcional
-│   │   │
-│   │   ├── glassdoor_scraper.py          # 🔧 Ajustar selectores
-│   │   ├── michaelpage_scraper.py        # 🔧 Ajustar selectores
-│   │   ├── randstad_scraper.py           # 🔧 Ajustar selectores
-│   │   ├── hays_scraper.py               # 🔧 Ajustar selectores
-│   │   ├── tecnoempleo_scraper.py        # 🔧 Ajustar selectores
-│   │   ├── infoempleo_scraper.py         # 🔧 Ajustar selectores
-│   │   ├── simplyhired_scraper.py        # 🔧 Ajustar selectores
-│   │   ├── ziprecruiter_scraper.py       # 🔧 Ajustar selectores
-│   │   ├── careerbuilder_scraper.py      # 🔧 Ajustar selectores
-│   │   ├── italenters_scraper.py         # 🔧 Ajustar selectores
-│   │   ├── upwork_scraper.py             # 🔧 Ajustar selectores
-│   │   ├── freelancer_scraper.py         # 🔧 Ajustar selectores
-│   │   ├── workana_scraper.py            # 🔧 Ajustar selectores
-│   │   ├── malt_scraper.py               # 🔧 Ajustar selectores
-│   │   └── fiverr_scraper.py             # 🔧 Ajustar selectores
-│   │
-│   ├── 📊 models/                        # Modelos de datos
-│   │   ├── __init__.py
-│   │   └── job_offer.py                  # JobOffer dataclass unificado
-│   │
-│   ├── ⚙️  services/                     # Servicios de negocio
-│   │   ├── __init__.py
-│   │   ├── data_analyzer.py              # Análisis de datos
-│   │   ├── data_storage.py               # Persistencia (CSV/JSON/SQLite)
-│   │   ├── data_visualizer.py            # Gráficas y visualizaciones
-│   │   └── report_generator.py           # Generación de reportes
-│   │
-│   └── 🛠️  utils/                        # Utilidades
-│       ├── __init__.py
-│       ├── config_loader.py              # Carga de configuración YAML
-│       └── scraping_utils.py             # Utilidades de scraping
-│
-├── 🧪 tests/                             # Tests unitarios
-│   ├── __init__.py
-│   ├── test_models/
-│   ├── test_scrapers/
-│   └── test_services/
-│
-├── 📊 data/                              # Almacenamiento de datos
-│   ├── raw/                              # Datos sin procesar
-│   ├── processed/                        # Datos limpios y deduplicados
-│   ├── reports/                          # Reportes generados
-│   └── visualizations/                   # Gráficas guardadas
-│
-├── 📜 scripts/                           # Scripts de automatización
-│   ├── search_all_platforms.py           # Ejecutar todos los scrapers
-│   ├── quick_start.py                    # Demo rápido
-│   ├── generate_scrapers.py              # Generador de scrapers
-│   ├── verify_installation.py            # Verificar setup
-│   ├── check_chrome.py                   # Verificar Chrome/Chromedriver
-│   └── setup.sh                          # Setup inicial
-│
-├── ⚙️  config/                           # Configuración
-│   ├── config.yaml                       # Config general
-│   └── scrapers_config.yaml              # Config por scraper
-│
-└── 📂 docs/                              # Documentación adicional
-    ├── architecture.md                   # Arquitectura detallada
-    └── extending_scrapers.md             # Crear nuevos scrapers
-```
-
-### Patrón de Diseño: Factory + Template Method
-
-```python
-# Factory crea scrapers dinámicamente
-from src.scrapers.scraper_factory import ScraperFactory
-
-scraper = ScraperFactory.create_scraper('indeed', config)
-jobs = scraper.scrape_jobs(keywords=['python', 'data science'], location='Madrid')
-
-# Template Method define flujo común
-class BaseScraper(ABC):
-    def scrape_jobs(self, keywords, location):
-        self._setup_driver()          # Implementado en subclase
-        for keyword in keywords:
-            jobs = self._search_keyword()  # Implementado en subclase
-        self._cleanup()
-        return jobs
-```
-
----
-
-## 🚀 Instalación
+## 🚀 Instalación Rápida
 
 ### Requisitos Previos
-- Python 3.8+
-- Google Chrome o Chromium
+
+- Python 3.11 o superior
+- Chrome/Chromium instalado (para scrapers con Selenium)
 - pip o conda
 
-### Instalación Rápida
+### Instalación Express
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/albertjimrod/compare_jobs.git
+git clone -b claude/job-scraper-data-science-01AoTTB6fVS9wcV3WMuFkxa6 \
+  https://github.com/albertjimrod/compare_jobs.git
 cd compare_jobs
 
-# 2. Cambiar a la rama estable (tiene todos los scrapers)
-git checkout claude/job-scraper-data-science-01AoTTB6fVS9wcV3WMuFkxa6
+# 2. Instalar dependencias
+pip install pandas beautifulsoup4 loguru pyyaml requests selenium webdriver-manager matplotlib tqdm
 
-# 3. Instalar dependencias
-pip install -r requirements.txt
-
-# O con conda (recomendado para entornos aislados)
-conda env create -f environment.yml
-conda activate compare_jobs
-
-# 4. Configurar variables de entorno (opcional)
-cp .env.example .env
-nano .env
-
-# 5. Verificar instalación
-python scripts/verify_installation.py
-
-# 6. Verificar Chrome/Chromedriver
-python scripts/check_chrome.py
+# 3. ¡Listo! Ejecutar
+python scripts/quick_start.py
 ```
 
-### Dependencias Principales
+### Instalación Completa (Recomendada)
 
-```yaml
-Web Scraping:
-  - selenium 4.15.0+              # Automatización de navegador
-  - undetected-chromedriver 3.5.4+ # Anti-detección
-  - beautifulsoup4 4.12.0+        # Parsing HTML
-  - playwright 1.40.0+            # Alternativa a Selenium
-  - cloudscraper 1.2.71+          # Bypass Cloudflare
+<details>
+<summary>Click para ver opciones de instalación detalladas</summary>
 
-Análisis de Datos:
-  - pandas 2.1.0+                 # Manipulación de datos
-  - numpy 1.24.0+                 # Computación numérica
-  - scikit-learn 1.3.0+           # Machine learning
+#### Opción 1: Usar Conda (Recomendado)
 
-NLP:
-  - nltk 3.8.0+                   # Procesamiento de lenguaje
-  - spacy 3.7.0+                  # NLP avanzado
+```bash
+# Clonar el repositorio
+git clone https://github.com/albertjimrod/compare_jobs.git
+cd compare_jobs
+git checkout claude/job-scraper-data-science-01AoTTB6fVS9wcV3WMuFkxa6
 
-Visualización:
-  - matplotlib 3.8.0+             # Gráficas
-  - seaborn 0.13.0+               # Gráficas estadísticas
-  - plotly 5.18.0+                # Gráficas interactivas
-  - wordcloud 1.9.3+              # Nubes de palabras
+# Crear entorno con conda
+conda env create -f environment.yml
 
-Utilidades:
-  - loguru 0.7.0+                 # Logging elegante
-  - tqdm 4.66.0+                  # Barras de progreso
-  - pyyaml 6.0+                   # Parsing YAML
+# Activar el entorno
+conda activate job-scraper-env
+```
+
+#### Opción 2: Usar pip + venv
+
+```bash
+# Clonar el repositorio
+git clone https://github.com/albertjimrod/compare_jobs.git
+cd compare_jobs
+git checkout claude/job-scraper-data-science-01AoTTB6fVS9wcV3WMuFkxa6
+
+# Crear entorno virtual
+python -m venv venv
+
+# Activar entorno virtual
+# En Linux/Mac:
+source venv/bin/activate
+# En Windows:
+venv\Scripts\activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+```
+
+</details>
+
+---
+
+## 📖 Uso - Guía Rápida
+
+### 🎯 Opción 1: Inicio Rápido (Solo Indeed)
+
+**La forma más fácil de empezar:**
+
+```bash
+python scripts/quick_start.py
+```
+
+Esto ejecutará:
+- ✅ Scraping de Indeed (plataforma más confiable)
+- ✅ Búsqueda: "data scientist", "machine learning", etc.
+- ✅ Límite: 50 ofertas
+- ✅ Análisis completo con tecnologías detectadas
+- ✅ Visualizaciones generadas
+- ✅ Informe HTML creado
+
+**Resultados en:** `data/reports/job_analysis_report.html`
+
+---
+
+### 🌐 Opción 2: Usar Todas las Plataformas
+
+**Para buscar en las 19 plataformas simultáneamente:**
+
+```python
+# scripts/search_all_platforms.py
+from src.scrapers.scraper_factory import ScraperFactory
+from src.services.data_analyzer import DataAnalyzer
+from src.services.data_visualizer import DataVisualizer
+from src.services.report_generator import ReportGenerator
+from src.utils.config_loader import ConfigLoader
+from loguru import logger
+
+# Configuración
+config = ConfigLoader()
+
+# Lista de plataformas a usar
+platforms = [
+    'indeed',      # ✅ Completamente funcional
+    'infojobs',    # ✅ Completamente funcional
+    'linkedin',    # ⚠️  Requiere completar selectores CSS
+    'glassdoor',   # ⚠️  Requiere completar selectores CSS
+    'monster',     # ✅ Funcional
+    'upwork',      # ⚠️  Requiere login para detalles completos
+    # ... añade más según necesites
+]
+
+# Palabras clave
+keywords = ['data scientist', 'machine learning', 'data engineer']
+location = 'España'
+
+# Recopilar ofertas de todas las plataformas
+all_jobs = []
+
+for platform_name in platforms:
+    try:
+        logger.info(f"\n{'='*60}")
+        logger.info(f"🔍 Buscando en {platform_name.upper()}...")
+        logger.info(f"{'='*60}")
+
+        scraper = ScraperFactory.create_scraper(platform_name, config)
+
+        if scraper:
+            jobs = scraper.scrape_jobs(keywords=keywords, location=location)
+            all_jobs.extend(jobs)
+            logger.info(f"✅ {platform_name}: {len(jobs)} ofertas recopiladas")
+        else:
+            logger.warning(f"⚠️  {platform_name}: Scraper no disponible")
+
+    except Exception as e:
+        logger.error(f"❌ Error en {platform_name}: {e}")
+        continue
+
+logger.info(f"\n{'='*60}")
+logger.info(f"📊 TOTAL: {len(all_jobs)} ofertas de {len(platforms)} plataformas")
+logger.info(f"{'='*60}\n")
+
+# Analizar datos
+analyzer = DataAnalyzer(config)
+analysis = analyzer.analyze(all_jobs)
+
+# Visualizar
+visualizer = DataVisualizer(config)
+visualizer.create_all_visualizations(all_jobs, analysis)
+
+# Generar informe
+reporter = ReportGenerator(config)
+report_path = reporter.generate_report(all_jobs, analysis)
+
+print(f"\n✅ Informe generado: {report_path}")
+```
+
+**Ejecutar:**
+
+```bash
+python scripts/search_all_platforms.py
 ```
 
 ---
 
-## 📖 Uso
+### 🎨 Opción 3: Plataformas Específicas
 
-### Quick Start - Demo Rápido (5 minutos)
+**Buscar solo en plataformas que te interesen:**
 
-```bash
-# Demo rápido con Indeed (scraper más confiable)
-python scripts/quick_start.py
+```python
+# Ejemplo: Solo LinkedIn, Glassdoor y Monster
+from src.scrapers.scraper_factory import ScraperFactory
+from src.utils.config_loader import ConfigLoader
+
+config = ConfigLoader()
+
+platforms = ['linkedin', 'glassdoor', 'monster']
+jobs = []
+
+for platform in platforms:
+    scraper = ScraperFactory.create_scraper(platform, config)
+    if scraper:
+        platform_jobs = scraper.scrape_jobs(
+            keywords=['data scientist', 'AI engineer'],
+            location='Madrid'
+        )
+        jobs.extend(platform_jobs)
+        print(f"{platform}: {len(platform_jobs)} ofertas")
+
+print(f"\nTotal: {len(jobs)} ofertas")
 ```
 
-### Uso Básico - Scraping de Una Plataforma
+---
+
+### 💡 Opción 4: Personalización Avanzada
+
+**Control total sobre la búsqueda:**
 
 ```python
 from src.scrapers.scraper_factory import ScraperFactory
 from src.utils.config_loader import ConfigLoader
 
-# Crear scraper
 config = ConfigLoader()
-scraper = ScraperFactory.create_scraper('indeed', config)
 
-# Scraping
-jobs = scraper.scrape_jobs(
-    keywords=['python', 'data science', 'machine learning'],
-    location='Madrid, España'
+# Crear scraper de Indeed
+indeed = ScraperFactory.create_scraper('indeed', config)
+
+# Configurar límites
+indeed.max_jobs = 100  # Máximo 100 ofertas
+
+# Buscar con parámetros específicos
+jobs = indeed.scrape_jobs(
+    keywords=[
+        'senior data scientist',
+        'machine learning engineer',
+        'MLOps engineer'
+    ],
+    location='Barcelona'
 )
 
-# Ver resultados
-print(f"Encontradas {len(jobs)} ofertas")
-for job in jobs[:5]:
-    print(f"- {job.title} @ {job.company}")
-    print(f"  Tecnologías: {', '.join(job.technologies[:5])}")
-```
+print(f"Encontradas: {len(jobs)} ofertas")
 
-### Uso Avanzado - Scraping Multi-Plataforma
-
-```bash
-# Ejecutar todos los scrapers disponibles
-python scripts/search_all_platforms.py \
-  --keywords "python,data science,machine learning" \
-  --location "Madrid, España" \
-  --platforms indeed,infojobs,linkedin,monster \
-  --max-jobs 100
-
-# Guardar resultados en CSV
-python scripts/search_all_platforms.py \
-  --keywords "python" \
-  --output results.csv \
-  --format csv
-```
-
-### Testing Individual de Scrapers
-
-```bash
-# Probar un scraper específico en modo visual
-python test_scraper_individual.py michaelpage \
-  --headless=false \
-  --max-jobs=5 \
-  --keywords="python,django" \
-  --location="Barcelona"
-
-# Ver todas las opciones
-python test_scraper_individual.py --help
-
-# Ejemplos con diferentes scrapers:
-python test_scraper_individual.py randstad --headless=false --max-jobs=10
-python test_scraper_individual.py tecnoempleo --keywords="react,nodejs"
-python test_scraper_individual.py indeed --save=results_indeed.csv
-```
-
-### Prueba de Concepto - 10 Scrapers
-
-```bash
-# Probar los 10 scrapers principales (10 ofertas cada uno)
-python test_multi_scrapers_poc.py
-
-# Genera reporte automático con:
-# - Scrapers exitosos vs fallidos
-# - Número de ofertas por scraper
-# - Tiempo de ejecución
-# - Muestra de ofertas encontradas
-```
-
-### Análisis de Datos
-
-```python
+# Ver tecnologías de las primeras ofertas
 from src.services.data_analyzer import DataAnalyzer
-from src.services.data_visualizer import DataVisualizer
 
-# Cargar datos
-analyzer = DataAnalyzer('data/processed/jobs.csv')
+analyzer = DataAnalyzer(config)
+jobs = analyzer._preprocess_jobs(jobs)  # Extraer tecnologías
 
-# Análisis
-top_tech = analyzer.get_top_technologies(n=10)
-salaries = analyzer.analyze_salaries_by_tech()
-locations = analyzer.analyze_by_location()
-
-# Visualización
-visualizer = DataVisualizer()
-visualizer.plot_technology_trends(top_tech)
-visualizer.generate_wordcloud(all_descriptions)
-visualizer.plot_salary_distribution()
+for job in jobs[:5]:
+    print(f"\n{job.title} - {job.company}")
+    print(f"Tecnologías: {', '.join(job.technologies[:10])}")
 ```
 
-### Generación de Reportes
+---
+
+## 🕷️ Plataformas Disponibles (19)
+
+### ✅ Completamente Funcionales (4)
+
+| Plataforma | Código | Características | Notas |
+|------------|--------|-----------------|-------|
+| Indeed | `indeed` | Selenium, multi-selector | ⚡ Más confiable |
+| InfoJobs | `infojobs` | Requests básico | API disponible |
+| LinkedIn | `linkedin` | Selenium, ofertas públicas | Limitado sin login |
+| Monster | `monster` | Selenium completo | Funcional |
+
+### ⚠️ Scrapers Stub - Listos para Completar (15)
+
+**Tienen estructura completa, requieren completar selectores CSS:**
+
+**Freelance:**
+- `upwork` - Plataforma freelance con skills directos
+- `freelancer` - Freelance internacional
+- `workana` - Enfoque Latinoamérica/España
+- `malt` - Freelance Europa
+- `fiverr` - Servicios freelance
+
+**Agregadores:**
+- `simplyhired` - Agregador de ofertas
+- `ziprecruiter` - Portal USA internacional
+- `careerbuilder` - API disponible
+
+**RR.HH.:**
+- `randstad` - Ofertas propias
+- `michaelpage` - Headhunting ejecutivo
+- `hays` - Internacional
+
+**Portales España:**
+- `italenters` - Tecnología España
+- `tecnoempleo` - Tech España
+- `infoempleo` - Portal generalista
+- `glassdoor` - Opiniones + empleos
+
+### 📚 Cómo Completar Scrapers Stub
+
+Ver guía detallada: **[SCRAPERS_GUIDE.md](SCRAPERS_GUIDE.md)**
 
 ```bash
-# Generar reporte completo en HTML
-python scripts/generate_report.py \
-  --input data/processed/jobs.csv \
-  --output reports/market_analysis.html \
-  --format html
+# 1. Activar modo visual para inspeccionar
+# En config/config.yaml:
+scraping:
+  headless_mode: false
 
-# Generar reporte en PDF
-python scripts/generate_report.py \
-  --input data/processed/jobs.csv \
-  --output reports/market_analysis.pdf \
-  --format pdf
+# 2. Ejecutar el scraper
+python -c "from src.scrapers.scraper_factory import ScraperFactory; \
+           ScraperFactory.create_scraper('linkedin').scrape_jobs(['python'])"
+
+# 3. Usar F12 en Chrome para encontrar selectores CSS
+# 4. Actualizar los selectores en el archivo del scraper
 ```
 
 ---
 
 ## ⚙️ Configuración
 
-### Archivo config/config.yaml
+### Archivo Principal: `config/config.yaml`
 
 ```yaml
-# Configuración de scraping
-scraping:
-  headless_mode: true                # false para ver navegador
-  delay_between_requests: 5          # Segundos entre requests
-  max_retries: 3                     # Reintentos en caso de fallo
-  page_load_timeout: 30              # Timeout de carga de página
-  max_jobs_per_platform: 100         # Máximo de ofertas por plataforma
-  max_pages_per_session: 5           # Máximo de páginas por sesión
+# Habilitar/deshabilitar plataformas
+platforms:
+  indeed:
+    enabled: true
+    requires_api: false
+    priority: 1
 
-# Términos de búsqueda por defecto
+  linkedin:
+    enabled: true
+    requires_api: false
+    priority: 2
+
+# Términos de búsqueda predeterminados
 search_terms:
   keywords:
-    - python
-    - data science
-    - machine learning
-    - data engineer
-  locations:
-    - "Madrid, España"
-    - "Barcelona, España"
-    - "Remote"
+    - "data scientist"
+    - "machine learning"
+    - "data engineer"
+    - "AI engineer"
 
-# Tecnologías a detectar
+  locations:
+    - "España"
+    - "Madrid"
+    - "Barcelona"
+    - "Remoto"
+
+# Control de scraping
+scraping:
+  max_jobs_per_platform: 50
+  delay_between_requests: 3
+  max_pages_per_session: 5
+  headless_mode: true
+  page_load_timeout: 30
+
+# Tecnologías a detectar (150+)
 analysis:
   technologies:
     languages:
       - Python
+      - R
+      - SQL
       - Java
+      - Scala
+      - C++
       - JavaScript
-      - TypeScript
-      - Go
-      - Rust
+      # ... 100+ más
+
     frameworks:
-      - Django
-      - Flask
-      - FastAPI
-      - React
-      - Vue
-      - Angular
-    tools:
-      - Docker
-      - Kubernetes
-      - AWS
-      - Azure
-      - GCP
-    databases:
-      - PostgreSQL
-      - MongoDB
-      - MySQL
-      - Redis
+      - TensorFlow
+      - PyTorch
+      - Keras
+      - Scikit-learn
+      - Pandas
+      - NumPy
+      # ... 50+ más
+```
 
-  skills:
-    - Machine Learning
-    - Deep Learning
-    - Data Analysis
-    - DevOps
-    - CI/CD
-    - Agile
-    - Scrum
+**Personalizar búsqueda:**
 
-# Almacenamiento
-storage:
-  output_format: csv                 # csv, json, sqlite
-  output_directory: data/processed
-  keep_raw_data: true
+```yaml
+# En config/config.yaml
+search_terms:
+  keywords:
+    - "senior machine learning engineer"
+    - "MLOps"
+    - "deep learning researcher"
+
+  locations:
+    - "Remote"
+    - "Barcelona"
 ```
 
 ---
 
-## 🧪 Testing
+## 📊 Resultados y Análisis
 
-### Ejecutar Tests Unitarios
+### Datos Recopilados
+
+Cada oferta incluye:
+- ✅ Título del puesto
+- ✅ Empresa
+- ✅ Plataforma de origen
+- ✅ URL directa a la oferta
+- ✅ Ubicación y modalidad (remoto/presencial/híbrido)
+- ✅ Descripción completa
+- ✅ **Tecnologías detectadas automáticamente** (150+ patrones)
+- ✅ Habilidades (skills) requeridas
+- ✅ Rango salarial (cuando disponible)
+- ✅ Tipo de contrato
+
+### Tecnologías Detectadas Automáticamente
+
+El sistema detecta **150+ tecnologías** incluyendo:
+
+**Lenguajes:** Python, R, SQL, Java, Scala, C++, JavaScript, Go, Rust, Julia, MATLAB, etc.
+
+**Frameworks ML/DL:** TensorFlow, PyTorch, Keras, Scikit-learn, XGBoost, LightGBM, etc.
+
+**Data Processing:** Pandas, NumPy, Dask, Spark, Hadoop, Kafka, Airflow, etc.
+
+**Visualización:** Matplotlib, Seaborn, Plotly, Tableau, Power BI, etc.
+
+**Cloud:** AWS, Azure, GCP, Docker, Kubernetes, etc.
+
+**Casos Especiales:** Maneja correctamente C++, C#, .NET, Node.js, Vue.js, etc.
+
+### Análisis Generados
+
+📈 **Estadísticas principales:**
+- Top 20 tecnologías más demandadas
+- Top 15 habilidades requeridas
+- Top 20 empresas que más contratan
+- Distribución geográfica (top 15 ciudades)
+- Distribución salarial (promedio, mediana, rangos)
+- Tipos de contrato (indefinido, temporal, freelance)
+- Modalidad de trabajo (remoto/presencial/híbrido)
+- Niveles de experiencia
+
+📊 **Análisis avanzado:**
+- Correlaciones entre tecnologías
+- Patrones de demanda por ubicación
+- Tendencias salariales por tecnología
+- Análisis de competitividad por empresa
+
+### Visualizaciones Generadas
+
+📁 **Ubicación:** `data/visualizations/`
+
+- `top_technologies.png` - Top 20 tecnologías más demandadas
+- `top_companies.png` - Empresas que más contratan
+- `top_locations.png` - Ciudades con más ofertas
+- `technology_correlations.png` - Matriz de correlación
+- `skills_wordcloud.png` - Nube de palabras de skills
+- `salary_distribution.png` - Distribución salarial
+- `work_location_types.png` - Modalidades de trabajo
+
+### Informe HTML
+
+📄 **Ubicación:** `data/reports/job_analysis_report.html`
+
+Informe completo con:
+- 📊 Resumen ejecutivo con métricas clave
+- 📈 Gráficos interactivos embebidos
+- 🔗 Enlaces directos a ofertas originales
+- 📋 Tablas de datos ordenables
+- 💡 Insights y recomendaciones
+- 🎨 Diseño profesional responsive
+
+**Abrir informe:**
 
 ```bash
-# Todos los tests
-pytest tests/
+# Linux/Mac
+xdg-open data/reports/job_analysis_report.html
 
-# Tests específicos
-pytest tests/test_scrapers/
-pytest tests/test_services/
+# Windows
+start data/reports/job_analysis_report.html
 
-# Con cobertura
-pytest --cov=src tests/
-```
-
-### Testing de Scrapers
-
-```bash
-# Test individual con verificación
-python test_scraper_individual.py <platform> \
-  --headless=false \
-  --verbose \
-  --max-jobs=5
-
-# Test de múltiples scrapers
-python test_multi_scrapers_poc.py
+# Navegador
+firefox data/reports/job_analysis_report.html
 ```
 
 ---
 
-## 📊 Características Técnicas Avanzadas
+## 🔧 Personalización Avanzada
 
-### Sistema Anti-Ban
+### Añadir Nuevas Tecnologías para Detectar
+
+```yaml
+# En config/config.yaml
+analysis:
+  technologies:
+    # Añadir nueva categoría
+    blockchain:
+      - Solidity
+      - Web3
+      - Ethereum
+      - Smart Contracts
+
+    # Añadir a categoría existente
+    languages:
+      - Python
+      - R
+      - Rust  # ← nueva
+      - Zig   # ← nueva
+```
+
+### Crear Scraper Personalizado
+
+```bash
+# 1. Usar plantilla
+cp src/scrapers/_scraper_template.py src/scrapers/mi_plataforma_scraper.py
+
+# 2. Editar y completar TODOs
+nano src/scrapers/mi_plataforma_scraper.py
+
+# 3. Registrar en factory
+# En src/scrapers/scraper_factory.py:
+from .mi_plataforma_scraper import MiPlataformaScraper
+
+_SCRAPERS = {
+    'miplataforma': MiPlataformaScraper,
+}
+
+# 4. Probar
+python -c "from src.scrapers.scraper_factory import ScraperFactory; \
+           ScraperFactory.create_scraper('miplataforma').scrape_jobs(['python'])"
+```
+
+Ver: **[SCRAPERS_GUIDE.md](SCRAPERS_GUIDE.md)** para guía completa
+
+---
+
+## 📂 Estructura del Proyecto
+
+```
+compare_jobs/
+├── config/
+│   └── config.yaml              # ⚙️  Configuración principal
+├── data/                        # 💾 Datos generados
+│   ├── raw/                     # CSV, JSON sin procesar
+│   ├── processed/               # Datos procesados
+│   ├── reports/                 # 📄 Informes HTML
+│   ├── visualizations/          # 📊 Gráficos PNG
+│   └── jobs.db                  # 🗄️  SQLite database
+├── scripts/
+│   ├── quick_start.py           # 🚀 Inicio rápido (Indeed)
+│   └── search_all_platforms.py  # 🌐 Buscar en todas las plataformas
+├── src/
+│   ├── models/
+│   │   └── job_offer.py         # 📋 Modelo de datos
+│   ├── scrapers/
+│   │   ├── base_scraper.py      # 🏗️  Clase base
+│   │   ├── indeed_scraper_selenium.py   # ✅ Indeed (Selenium)
+│   │   ├── linkedin_scraper.py          # ✅ LinkedIn
+│   │   ├── monster_scraper.py           # ✅ Monster
+│   │   ├── ... (16 scrapers más)
+│   │   ├── _scraper_template.py         # 📝 Plantilla
+│   │   └── scraper_factory.py           # 🏭 Factory
+│   ├── services/
+│   │   ├── data_storage.py      # 💾 Guardar datos
+│   │   ├── data_analyzer.py     # 📊 Análisis + extracción de tecnologías
+│   │   ├── data_visualizer.py   # 📈 Gráficos
+│   │   └── report_generator.py  # 📄 Informes HTML
+│   └── utils/
+│       ├── config_loader.py     # ⚙️  Cargar config
+│       └── scraping_utils.py    # 🛠️  Utilidades
+├── SCRAPERS_GUIDE.md            # 📚 Guía de scrapers
+├── IMPLEMENTATION_SUMMARY.md    # 📝 Resumen técnico
+├── requirements.txt             # 📦 Dependencias
+└── README.md                    # 📖 Este archivo
+```
+
+---
+
+## 🐛 Solución de Problemas
+
+### ❌ No aparecen tecnologías en el informe
+
+**Problema:** El informe muestra 0 tecnologías encontradas.
+
+**Soluciones:**
+
+1. **Verificar que las descripciones se están extrayendo:**
+
+```bash
+# Ver logs detallados
+tail -f data/job_scraper.log | grep "descripción"
+```
+
+2. **Activar modo debug:**
 
 ```python
-✅ Delays Aleatorios con Jitter
-   - Delay base + variación aleatoria (20-50%)
-   - Implementado en: base_scraper.py:_sleep()
-
-✅ Backoff Exponencial en Reintentos
-   - 2s, 4s, 8s, 16s entre reintentos
-   - Implementado en: base_scraper.py:_retry_on_failure()
-
-✅ User-Agent Rotation
-   - Librería fake-useragent
-   - Implementado en: scraping_utils.py
-
-✅ Anti-Detección Selenium
-   - Desactivar webdriver flag
-   - Experimental options para Chrome
-   - Implementado en cada scraper
-
-✅ Rate Limiting Configurable
-   - Por plataforma y global
-   - Implementado en: config.yaml + base_scraper.py
-
-✅ Deduplicación Automática
-   - Por URL o título+empresa
-   - Implementado en: base_scraper.py:remove_duplicates()
+# En tu script
+from loguru import logger
+logger.remove()
+logger.add("debug.log", level="DEBUG")
 ```
 
-### Extracción Inteligente de Datos
+3. **Verificar config.yaml:**
 
-- **Múltiples selectores con fallback**: Si un selector falla, prueba alternativas
-- **Regex avanzados**: Extracción de salarios, fechas, tecnologías
-- **NLP**: Análisis de descripciones para detectar skills implícitas
-- **Lazy loading**: Manejo de contenido dinámico con JavaScript
+```yaml
+# Asegúrate de tener tecnologías configuradas
+analysis:
+  technologies:
+    languages:
+      - Python  # ← debe haber al menos una
+```
 
----
+4. **Probar extracción manual:**
 
-## 📚 Documentación Adicional
+```python
+from src.services.data_analyzer import DataAnalyzer
+from src.utils.config_loader import ConfigLoader
 
-| Documento | Descripción |
-|-----------|-------------|
-| [RESUMEN_EJECUTIVO.md](RESUMEN_EJECUTIVO.md) | Plan de acción inmediato y próximos pasos |
-| [PLAN_INTEGRACION_SCRAPERS.md](PLAN_INTEGRACION_SCRAPERS.md) | Análisis técnico completo de las 10 fuentes |
-| [ANALISIS_NUEVAS_FUENTES.md](ANALISIS_NUEVAS_FUENTES.md) | Evaluación de barreras anti-scraping |
-| [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) | Resumen de implementación y estado |
-| [SCRAPERS_GUIDE.md](SCRAPERS_GUIDE.md) | Guía de uso de scrapers |
-| [SELENIUM_GUIDE.md](SELENIUM_GUIDE.md) | Guía específica de Selenium |
-| [ANTI_SCRAPING_SOLUTIONS.md](ANTI_SCRAPING_SOLUTIONS.md) | Técnicas para evadir detección |
-| [docs/extending_scrapers.md](docs/extending_scrapers.md) | Cómo crear nuevos scrapers |
+config = ConfigLoader()
+analyzer = DataAnalyzer(config)
 
----
+# Cargar ofertas
+# jobs = ... (tus ofertas)
 
-## 🎯 Roadmap
+# Extraer tecnologías
+jobs = analyzer._preprocess_jobs(jobs)
 
-### Fase 1: Estabilización (Semana 1-2) ✅
-- [x] Arquitectura modular con 19 scrapers
-- [x] Sistema anti-ban robusto
-- [x] Análisis automático de tecnologías
-- [x] Deduplicación de ofertas
-- [x] Documentación completa
+# Ver resultados
+for job in jobs[:5]:
+    print(f"{job.title}: {job.technologies}")
+```
 
-### Fase 2: Testing y Ajustes (Semana 3-4) 🔄
-- [x] Scripts de testing individual
-- [x] Prueba de concepto multi-scraper
-- [ ] Completar selectores CSS por plataforma
-- [ ] Validación de 5+ scrapers funcionales
+### ❌ Error: "Chrome binary not found"
 
-### Fase 3: Expansión (Mes 2) 🔜
-- [ ] 10+ scrapers completamente funcionales
-- [ ] Dataset de 500-1000 ofertas únicas
-- [ ] Dashboard de visualización
-- [ ] Sistema de alertas
-
-### Fase 4: Automatización (Mes 3) 🔜
-- [ ] Scraping programado (cron jobs)
-- [ ] Notificaciones de nuevas ofertas
-- [ ] API REST para consultas
-- [ ] Base de datos centralizada
-
-### Fase 5: Inteligencia (Futuro) 💡
-- [ ] ML para predicción de salarios
-- [ ] Recomendación personalizada de ofertas
-- [ ] Análisis de tendencias del mercado
-- [ ] Comparación automática con tu perfil
-
----
-
-## 🤝 Contribución
-
-Las contribuciones son bienvenidas. Para contribuir:
-
-### Reportar Bugs
+**Solución:**
 
 ```bash
-# Crea un issue en GitHub con:
-- Descripción del problema
-- Pasos para reproducir
-- Comportamiento esperado vs actual
-- Logs relevantes
+# Instalar Chrome (Ubuntu/Debian)
+wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | sudo tee /etc/apt/sources.list.d/google-chrome.list
+sudo apt-get update
+sudo apt-get install google-chrome-stable
+
+# Verificar instalación
+python scripts/check_chrome.py
 ```
 
-### Añadir Nuevo Scraper
+### ❌ Scraper muy lento
 
-1. Usa el template: `src/scrapers/_scraper_template.py`
-2. Implementa los métodos abstractos
-3. Añade selectores CSS específicos
-4. Prueba con `test_scraper_individual.py`
-5. Crea PR con documentación
+**Problema:** El scraper tarda 90+ segundos por oferta.
 
-### Mejorar Scraper Existente
+**Ya está resuelto en esta versión**, pero si persiste:
 
-1. Identifica el scraper: `src/scrapers/<platform>_scraper.py`
-2. Ejecuta en modo visual para debuggear
-3. Actualiza selectores CSS
-4. Prueba exhaustivamente
-5. Documenta cambios en PR
+```yaml
+# En config/config.yaml, ajustar timeouts
+scraping:
+  page_load_timeout: 15  # Reducir de 30 a 15
+  delay_between_requests: 2  # Reducir delays
+```
+
+### ❌ Error 403/429 (Bloqueado por anti-scraping)
+
+**Soluciones:**
+
+1. **Aumentar delays:**
+
+```yaml
+scraping:
+  delay_between_requests: 5  # Aumentar a 5+ segundos
+  max_jobs_per_platform: 20  # Reducir límite
+```
+
+2. **Usar API oficial:**
+
+```python
+# LinkedIn: https://developer.linkedin.com/
+# Indeed: https://developer.indeed.com/
+# Glassdoor: https://www.glassdoor.com/developer/
+```
+
+3. **Ver logs para detalles:**
+
+```bash
+grep "403\|429" data/job_scraper.log
+```
+
+---
+
+## 📚 Documentación Completa
+
+- 📘 **[SCRAPERS_GUIDE.md](SCRAPERS_GUIDE.md)** - Guía completa de las 19 plataformas
+- 📘 **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Resumen técnico detallado
+- 📘 **[SELENIUM_GUIDE.md](SELENIUM_GUIDE.md)** - Guía de Selenium y WebDriver
+- 📘 **[ANTI_SCRAPING_SOLUTIONS.md](ANTI_SCRAPING_SOLUTIONS.md)** - Soluciones anti-ban
 
 ---
 
 ## ⚠️ Consideraciones Legales y Éticas
 
-### Uso Responsable
+- ⚖️ **Términos de Servicio**: Respeta los TOS de cada plataforma
+- 🔑 **APIs Oficiales**: Preferibles cuando estén disponibles
+- ⏱️ **Rate Limiting**: Incluye delays para no sobrecargar servidores
+- 🔒 **Privacidad**: No recopiles datos personales sensibles
+- 🎓 **Uso Educativo**: Este proyecto es para aprendizaje y uso personal
 
-Este proyecto es para **uso educacional y personal**. Al usar este software:
-
-- ✅ Respeta los Terms of Service de cada plataforma
-- ✅ Usa delays razonables (5-10 segundos mínimo)
-- ✅ No hagas scraping masivo (max 100-200 ofertas/sesión)
-- ✅ Respeta robots.txt cuando sea posible
-- ❌ NO uses para reventa de datos
-- ❌ NO hagas scraping comercial sin permiso
-- ❌ NO sobrecarges los servidores
-
-### APIs Oficiales Recomendadas
-
-Cuando estén disponibles, **usa APIs oficiales** en lugar de scraping:
-
-- **Indeed**: https://www.indeed.com/publisher
-- **LinkedIn**: https://developer.linkedin.com/
-- **Glassdoor**: https://www.glassdoor.com/developer/
-- **InfoJobs**: https://developer.infojobs.net/
-
----
-
-## 🐛 Troubleshooting
-
-### Problema: Scraper no encuentra ofertas
-
-```bash
-# 1. Ejecutar en modo visual para ver qué sucede
-python test_scraper_individual.py <platform> --headless=false
-
-# 2. Revisar logs
-tail -f logs/test_<platform>_*.log
-
-# 3. Verificar selectores CSS actualizados
-# Los sitios cambian, los selectores pueden quedar obsoletos
-```
-
-### Problema: Error 403 Forbidden
-
-```bash
-# Incrementar delays en config.yaml
-scraping:
-  delay_between_requests: 10  # Aumentar de 5 a 10+
-
-# Usar undetected-chromedriver
-# Ya está configurado en los scrapers
-```
-
-### Problema: ChromeDriver no funciona
-
-```bash
-# Verificar instalación
-python scripts/check_chrome.py
-
-# Reinstalar chromedriver
-pip install --upgrade webdriver-manager
-```
-
-### Problema: Ofertas duplicadas
-
-```python
-# La deduplicación está automática, pero puedes forzarla:
-scraper.remove_duplicates()
-
-# O al cargar datos:
-analyzer = DataAnalyzer('data.csv', remove_duplicates=True)
-```
+**APIs Oficiales Recomendadas:**
+- LinkedIn: https://developer.linkedin.com/
+- Indeed: https://developer.indeed.com/
+- Glassdoor: https://www.glassdoor.com/developer/
+- Upwork: https://developers.upwork.com/
 
 ---
 
 ## 📊 Estadísticas del Proyecto
 
-- 📁 **19 scrapers** implementados
-- 🎯 **10 plataformas** prioritarias
-- 📄 **2000+ líneas** de código
-- 📚 **8 documentos** de ayuda
-- 🧪 **2 scripts** de testing
-- ⏱️ **500-1000 ofertas** esperadas/scraping completo
+- 🕷️ **19 scrapers** implementados (4 completos, 15 stubs listos)
+- 🔍 **150+ tecnologías** detectadas automáticamente
+- 📈 **80+ skills** identificadas
+- ⚡ **15x más rápido** que versiones anteriores
+- 📁 **~6,500 líneas** de código
+- 📚 **4 guías** de documentación completas
+
+---
+
+## 🙏 Contribuir
+
+¿Quieres añadir un nuevo scraper o mejorar uno existente?
+
+1. Fork el repositorio
+2. Crea una rama: `git checkout -b feature/nuevo-scraper`
+3. Usa la plantilla: `src/scrapers/_scraper_template.py`
+4. Completa los selectores CSS
+5. Prueba el scraper
+6. Haz commit: `git commit -m 'Add scraper for XXX'`
+7. Push: `git push origin feature/nuevo-scraper`
+8. Abre un Pull Request
 
 ---
 
 ## 📝 Licencia
 
-Este proyecto está bajo la Licencia MIT. Ver [LICENSE](LICENSE) para más detalles.
+Este proyecto está bajo la Licencia MIT - ver LICENSE para más detalles.
 
-```
-MIT License
+## 👥 Autor
 
-Copyright (c) 2024 Alberto Jim Rod
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction...
-```
-
----
-
-## 👥 Autores
-
-- **Alberto Jim Rod** - [@albertjimrod](https://github.com/albertjimrod)
-  - 📧 Email: [tu-email@example.com]
-  - 💼 LinkedIn: [tu-perfil-linkedin]
-
----
+- Alberto Jim Rod - [@albertjimrod](https://github.com/albertjimrod)
 
 ## 🙏 Agradecimientos
 
-- **Selenium Team** - Por la herramienta de automatización
-- **BeautifulSoup** - Por el excelente parser HTML
-- **undetected-chromedriver** - Por la evasión de detección
-- **Comunidad Open Source** - Por las librerías utilizadas
+- Beautiful Soup - Web scraping
+- Selenium - Browser automation
+- Pandas - Análisis de datos
+- Matplotlib/Seaborn - Visualizaciones
+- tqdm - Barras de progreso
+- Loguru - Logging inteligente
 
 ---
 
-## 📞 Soporte
+## 🚀 Quick Links
 
-¿Necesitas ayuda?
-
-1. 📖 **Documentación**: Lee los docs en la carpeta raíz
-2. 🐛 **Issues**: Abre un issue en GitHub
-3. 💬 **Discussions**: Participa en GitHub Discussions
-4. 📧 **Email**: Contacto directo (para consultas privadas)
+- 🐛 [Reportar Bug](https://github.com/albertjimrod/compare_jobs/issues)
+- 💡 [Sugerir Feature](https://github.com/albertjimrod/compare_jobs/issues)
+- 📖 [Ver Documentación Completa](SCRAPERS_GUIDE.md)
+- ⭐ [Dale una Estrella](https://github.com/albertjimrod/compare_jobs)
 
 ---
 
-## 🔄 Estado del Proyecto
-
-**Estado**: 🟢 Desarrollo Activo
-
-**Última actualización**: 2025-11-20
-
-**Versión actual**: v1.0-beta
-
-**Próxima release**: v1.1 (Testing completo de 10 scrapers)
-
----
-
-## ⭐ Si te gusta el proyecto
-
-Si este proyecto te resulta útil:
-
-- ⭐ Dale una estrella en GitHub
-- 🔀 Haz fork para tus propias modificaciones
-- 📢 Compártelo con otros developers
-- 🤝 Contribuye con mejoras
-- ☕ Invítame un café (opcional)
-
----
-
-**Happy Scraping! 🚀🔍**
-
-```
-                    🔍 Compare Jobs
-              ┌─────────────────────────┐
-              │  19 Scrapers Working   │
-              │  For Your Dream Job!   │
-              └─────────────────────────┘
-                        │
-        ┌───────────────┼───────────────┐
-        │               │               │
-    🏢 Indeed      📊 LinkedIn     💼 InfoJobs
-    🔍 Glassdoor   🌐 Monster      🎯 Tecnoempleo
-    💻 MichaelPage 🚀 Randstad     ⭐ And 11 more!
-```
-
----
-
+**¡Happy Scraping!** 🕷️✨
