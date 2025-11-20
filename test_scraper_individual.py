@@ -265,11 +265,11 @@ def save_results(jobs, filename):
                 'título': job.title,
                 'empresa': job.company,
                 'ubicación': job.location,
-                'salario': job.salary or 'No especificado',
+                'salario': job.salary if hasattr(job, 'salary') and job.salary else 'No especificado',
                 'tecnologías': ', '.join(job.technologies) if job.technologies else '',
                 'plataforma': job.platform,
                 'url': job.url,
-                'fecha_scraping': job.scraped_date.strftime('%Y-%m-%d %H:%M:%S')
+                'fecha_scraping': job.scraped_date.strftime('%Y-%m-%d %H:%M:%S') if hasattr(job, 'scraped_date') and job.scraped_date else ''
             })
 
         # Crear DataFrame y guardar
