@@ -11,8 +11,8 @@ from src.utils.config_loader import ConfigLoader
 config = ConfigLoader()
 
 # Forzar modo visual y verbose
-config.config['scraping.headless_mode'] = False
-config.config['scraping.max_jobs_per_platform'] = 5
+config.config['scraping']['headless_mode'] = False
+config.config['scraping']['max_jobs_per_platform'] = 5
 
 print("="*70)
 print("🔍 DIAGNÓSTICO DE SCRAPER - MICHAELPAGE")
