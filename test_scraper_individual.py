@@ -203,7 +203,7 @@ def test_scraper(platform, keywords, location, config_overrides=None):
                 logger.info(f"     🏢 {job.company}")
                 logger.info(f"     📍 {job.location}")
 
-                if job.salary:
+                if hasattr(job, 'salary') and job.salary:
                     logger.info(f"     💰 {job.salary}")
 
                 if job.technologies:
