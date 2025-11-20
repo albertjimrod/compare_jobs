@@ -156,17 +156,35 @@ class RandstadScraper(BaseScraper):
 
                 self.driver.get(url)
 
-                # TODO: Ajustar selector del contenedor de ofertas
-                try:
-                    WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.CLASS_NAME, "job-card"))
-                    )
-                except TimeoutException:
-                    logger.warning("Timeout esperando resultados")
-                    break
+                                # Esperar carga con múltiples selectores posibles
+                selectors_to_try = [
+                    (By.CSS_SELECTOR, "article.job"),
+                    (By.CSS_SELECTOR, "div.job-item"),
+                    (By.CSS_SELECTOR, ".job-card"),
+                    (By.CSS_SELECTOR, "[data-job-id]"),
+                    (By.CSS_SELECTOR, "div[class*='job']"),
+                    (By.CSS_SELECTOR, "li.search-result"),
+                    (By.CSS_SELECTOR, "div.result"),
+                ]
 
-                # TODO: Ajustar selector de las tarjetas
-                job_cards = self.driver.find_elements(By.CLASS_NAME, "job-card")
+                job_cards = []
+                for by_type, selector in selectors_to_try:
+                    try:
+                        WebDriverWait(self.driver, 8).until(
+                            EC.presence_of_element_located((by_type, selector))
+                        )
+                        job_cards = self.driver.find_elements(by_type, selector)
+                        if len(job_cards) > 2:  # Al menos 3 ofertas
+                            logger.debug(f"✓ Usando selector: {selector} ({len(job_cards)} ofertas)")
+                            break
+                        else:
+                            job_cards = []  # Falso positivo, seguir buscando
+                    except TimeoutException:
+                        continue
+
+                if not job_cards:
+                    logger.warning("No se encontraron ofertas con ningún selector")
+                    break
 
                 if not job_cards:
                     logger.debug("No se encontraron más ofertas")
@@ -211,18 +229,60 @@ class RandstadScraper(BaseScraper):
             job_url = ""
             description = ""
 
-            # Título (TODO: ajustar selector)
-            try:
-                title_elem = card.find_element(By.CSS_SELECTOR, "h2.job-title, h3.title, a.job-link")
-                title = ScrapingUtils.clean_text(title_elem.text)
-            except NoSuchElementException:
+                        # Título - múltiples selectores
+            title_selectors = [
+                "h2.job-title", "h3.title", "h2", "h3", "a.job-link",
+                ".job-title", "[data-job-title]", "h2 a", "h3 a"
+            ]
+            for selector in title_selectors:
+                try:
+                    title_elem = card.find_element(By.CSS_SELECTOR, selector)
+                    title = ScrapingUtils.clean_text(title_elem.text)
+                    if title and len(title) > 3:
+                        break
+                except NoSuchElementException:
+                    continue
+
+            if not title:
                 logger.debug("No se pudo extraer título")
                 return None
 
-            # Empresa (TODO: ajustar selector)
+            # Empresa - múltiples selectores
+            company_selectors = [
+                ".company-name", ".employer", "[data-company]", ".company",
+                "span.company", "div.company", "[class*='company']"
+            ]
+            for selector in company_selectors:
+                try:
+                    company_elem = card.find_element(By.CSS_SELECTOR, selector)
+                    company_text = ScrapingUtils.clean_text(company_elem.text)
+                    if company_text and len(company_text) > 1:
+                        company = company_text
+                        break
+                except NoSuchElementException:
+                    continue
+
+            # Ubicación - múltiples selectores
+            location_selectors = [
+                ".job-location", ".location", "[data-location]", ".city",
+                "span.location", "div.location", "[class*='location']"
+            ]
+            for selector in location_selectors:
+                try:
+                    location_elem = card.find_element(By.CSS_SELECTOR, selector)
+                    location_text = ScrapingUtils.clean_text(location_elem.text)
+                    if location_text and len(location_text) > 1:
+                        location = location_text
+                        break
+                except NoSuchElementException:
+                    continue
+
+            # URL
             try:
-                company_elem = card.find_element(By.CSS_SELECTOR, ".company-name, .employer, [data-company]")
-                company = ScrapingUtils.clean_text(company_elem.text)
+                link_elem = card.find_element(By.TAG_NAME, "a")
+                job_url = link_elem.get_attribute('href')
+                if job_url and not job_url.startswith('http'):
+                    job_url = self.BASE_URL + job_url
             except NoSuchElementException:
                 pass
 
